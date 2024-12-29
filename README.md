@@ -1,5 +1,5 @@
 # ProtMate
-ProtMate: A System for Performing Biochemical &amp; Biophysical Calculations<br>
+<center><h1>ProtMate: A System for Performing Biochemical &amp; Biophysical Calculations</h1></center>
 ![ProtMate_logo](https://github.com/user-attachments/assets/1e268cdd-8b93-44f0-9af6-97b000b9bdf9)
 <br>
 
