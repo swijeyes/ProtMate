@@ -9,4 +9,4 @@
 
   <pre>g++ -o protmate {location of src files}/pmate.cpp</pre>
   
-<p>This program is freely distributed under a GPL3 license.</p>
+<p>This program is freely distributed under a GPL3 license. Author assumes no liability for accuracy of calculations.</p>
