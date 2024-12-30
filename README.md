@@ -5,7 +5,7 @@
 <br>
 <p>ProtMate is a UNIX application for performing common laboratory calculations, focusing primarily on biochemical and biophysical workflows.</p>
 
-<p>Pre-compiled binarries for MacOS (verision 15.2 and above) are provided). Additional binaries for Linux distributions will be made available in the future. Alternatively, the source-code can be compiled using the GNU C++ compiler (clang-1600.0.26.6 or later) in any UNIX or Linux environment (including the Windows Subsusyem for Linux) using the following command:</p>
+<p>Pre-compiled binarries for MacOS (verision 15.2 and above on Apple Silicon) are provided). Additional binaries for Linux distributions will be made available in the future. Alternatively, the source-code can be compiled using the GNU C++ compiler (clang-1600.0.26.6 or later) in any UNIX or Linux environment (including the Windows Subsusyem for Linux) using the following command:</p>
 
   <pre>g++ -o protmate {location of src files}/pmate.cpp</pre>
   
