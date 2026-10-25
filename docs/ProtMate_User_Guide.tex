@@ -1,0 +1,1930 @@
+% ProtMate 1.2.0 User Guide
+%
+% Compile with pdfLaTeX, XeLaTeX, LuaLaTeX or Tectonic (run twice for the
+% table of contents and cross-references), for example:
+%     pdflatex ProtMate_User_Guide.tex && pdflatex ProtMate_User_Guide.tex
+%     tectonic ProtMate_User_Guide.tex
+% Screenshots are read from the images/ folder next to this file.
+%
+% Copyright (C) 2024-2026 Sanjeeva Wijeyesakere. ProtMate is free software,
+% released under the GNU General Public License version 3.
+
+\documentclass[11pt,a4paper,oneside]{report}
+
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{lmodern}
+\else
+  \usepackage{fontspec}
+\fi
+\usepackage[margin=2.5cm,headheight=14pt]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{fancyvrb}
+\usepackage{fancyhdr}
+\usepackage{caption}
+\usepackage[most]{tcolorbox}
+\usepackage[hidelinks]{hyperref}
+
+% ---------------------------------------------------------------------------
+% Settings to edit
+
+\newcommand{\pmversion}{1.2.0}
+\newcommand{\copyrightyears}{2024--2026}
+\newcommand{\repourl}{https://github.com/swijeyes/ProtMate}
+\newcommand{\repo}{\url{\repourl}}
+\newcommand{\releases}{\url{\repourl/releases}}
+\newcommand{\issues}{\url{\repourl/issues}}
+% How the licence is granted; the FSF's suggested wording adds
+% ", or (at your option) any later version" after "version 3 of the License".
+\newcommand{\gplgrant}{either version 3 of the License}
+
+% ---------------------------------------------------------------------------
+% Appearance
+
+\definecolor{pmblue}{HTML}{1F5FA8}
+\definecolor{pmgrey}{HTML}{F3F4F6}
+\definecolor{pmwarn}{HTML}{B35900}
+
+\hypersetup{colorlinks=true,linkcolor=pmblue,urlcolor=pmblue,citecolor=pmblue,
+  pdftitle={ProtMate User Guide},pdfauthor={Sanjeeva Wijeyesakere}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small ProtMate \pmversion{} User Guide}
+\fancyhead[R]{\small\leftmark}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+\setlist{itemsep=2pt,topsep=4pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\setlength{\emergencystretch}{3em}
+\renewcommand{\arraystretch}{1.25}
+\captionsetup{font=small,labelfont=bf}
+
+% Text helpers
+\newcommand{\cmd}[1]{\texttt{#1}}            % something to type, or a file name
+\newcommand{\key}[1]{\fbox{\footnotesize\textsf{#1}}}
+\newcommand{\gui}[1]{\textsf{\textbf{#1}}}  % a button, field or menu in the GUI
+\newcommand{\menupath}[2]{\gui{#1}\,$\triangleright$\,\gui{#2}}
+\newcommand{\ul}{\ensuremath{\mu}l}
+\newcommand{\degC}{\ensuremath{^{\circ}}C}
+
+% Note, tip and warning boxes
+\newtcolorbox{note}[1][Note]{colback=pmgrey,colframe=pmblue,boxrule=0.5pt,arc=2pt,
+  left=6pt,right=6pt,top=4pt,bottom=4pt,fonttitle=\bfseries\small,title=#1}
+\newtcolorbox{warning}[1][Caution]{colback=pmwarn!6,colframe=pmwarn,boxrule=0.5pt,arc=2pt,
+  left=6pt,right=6pt,top=4pt,bottom=4pt,fonttitle=\bfseries\small,title=#1}
+
+% Terminal sessions and listings. In a session, \inp{...} marks what the user types.
+\newcommand{\inp}[1]{\textbf{\textcolor{pmblue}{#1}}}
+\DefineVerbatimEnvironment{session}{Verbatim}{fontsize=\small,frame=single,
+  framesep=3mm,rulecolor=\color{gray},commandchars=\\\{\}}
+\DefineVerbatimEnvironment{terminal}{Verbatim}{fontsize=\small,frame=leftline,
+  framesep=3mm,rulecolor=\color{pmblue}}
+\DefineVerbatimEnvironment{listing}{Verbatim}{fontsize=\small,frame=single,
+  framesep=3mm,rulecolor=\color{gray}}
+
+% A screenshot
+\newcommand{\screenshot}[2]{%
+  \begin{figure}[htbp]\centering
+  \IfFileExists{images/#1.png}{\includegraphics[width=0.92\linewidth]{images/#1.png}}%
+    {\fbox{\parbox[c][4cm][c]{0.8\linewidth}{\centering Screenshot images/#1.png not found}}}
+  \caption{#2}\label{fig:#1}
+  \end{figure}}
+
+% Prompt tables for the terminal modules
+\newenvironment{prompts}
+  {\tabularx{\linewidth}{@{}>{\raggedright\arraybackslash\ttfamily\small}p{0.46\linewidth}X@{}}
+   \toprule \textrm{\textbf{Prompt}} & \textbf{What to enter}\\ \midrule}
+  {\bottomrule\endtabularx}
+% The command names that start a terminal tool
+% Heading for one item of the terminal version's main menu (numbered by the menu itself)
+\newcommand{\menuoption}[1]{\subsection*{#1}\addcontentsline{toc}{subsection}{#1}}
+\newcommand{\typed}[1]{\par\noindent\textbf{Type:} #1\par}
+
+\title{%
+  \vspace*{2cm}
+  \IfFileExists{../resources/pmate_icon.png}{\includegraphics[width=3.5cm]{../resources/pmate_icon.png}\\[1cm]}{}
+  {\Huge\bfseries ProtMate}\\[0.4cm]
+  {\LARGE Laboratory Formula Calculator}\\[0.8cm]
+  {\Large User Guide for version \pmversion}\\[0.3cm]
+  {\large macOS \textperiodcentered{} Windows \textperiodcentered{} Linux}}
+\author{Sanjeeva Wijeyesakere}
+\date{October 2026}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+\clearpage
+\thispagestyle{empty}
+\vspace*{\fill}
+{\small
+\textbf{ProtMate \pmversion{} User Guide}
+
+Copyright \textcopyright{} \copyrightyears{} Sanjeeva Wijeyesakere
+
+ProtMate is free software: you can redistribute it and/or modify it under the terms of the GNU
+General Public License as published by the Free Software Foundation, \gplgrant.
+
+ProtMate is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+Public License for more details. You should have received a copy of the GNU General Public License
+along with ProtMate. If not, see \url{https://www.gnu.org/licenses/}.
+
+\textbf{Disclaimer.} ProtMate and this guide are provided ``as is''. The author assumes no
+liability for the accuracy of any calculation, result or report produced by ProtMate, or for the
+functionality, fitness or continued availability of the program. You are responsible for checking
+all results independently before relying on them in experiments, publications or any other
+decisions. See Appendix~\ref{app:licence} for the full terms.
+
+Source code, releases and issue tracker: \repo
+}
+\clearpage
+
+\tableofcontents
+
+% ===========================================================================
+\chapter{Introduction}
+
+\section{What ProtMate does}
+
+ProtMate is a calculator for the everyday arithmetic of a biochemistry or structural biology
+laboratory. It works out protein and nucleic acid concentrations from absorbance readings, analyses
+protein sequences (composition, chemical formula, molecular weight and extinction coefficient),
+estimates primer melting temperatures and converts between percentage and molar concentrations. It
+also includes small utilities for crystallography and docking work: renaming diffraction images for
+Mosflm, writing AutoDock Vina configuration files, converting PDBQT files to PDB, and generating
+X-PLOR/CNS scripts that solvate a protein.
+
+\section{Two ways to use ProtMate}
+
+ProtMate comes in two forms that share the same calculation engine, so they always give the same
+answers and write identical report files.
+
+\begin{description}
+  \item[ProtMate (graphical version).] A desktop application with a window, a list of tools on the
+    left and forms on the right. Results update as you type. This is the easiest way to start.
+  \item[pmate (terminal version).] A text program that you run in a terminal window
+    (Terminal on macOS, Command Prompt or PowerShell on Windows, a shell on Linux). You choose a tool
+    from a numbered menu and answer its questions one at a time. It is handy on servers, over
+    SSH connections, and for people who prefer the keyboard.
+\end{description}
+
+\begin{table}[htbp]\centering\small
+\caption{The graphical and terminal versions compared.}
+\begin{tabularx}{\linewidth}{@{}lXX@{}}
+\toprule
+ & \textbf{ProtMate (GUI)} & \textbf{pmate (terminal)} \\ \midrule
+Program file & \cmd{ProtMate.app} (macOS), \cmd{ProtMate.exe} (Windows), \cmd{ProtMate} (Linux)
+             & \cmd{pmate} (macOS, Linux), \cmd{pmate.exe} (Windows) \\
+How you work & Forms; results update live & Question and answer, one value at a time \\
+Calculators & All & All \\
+File utilities & All, with previews before anything is written & All \\
+Operating-system commands (\cmd{ls}, \cmd{ps}, \cmd{sys}, \ldots) & Not available & Available \\
+Needs & A desktop session & Only a terminal \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Features at a glance}
+
+Table~\ref{tab:features} lists every tool, the number you type for it in the terminal version's
+menu, and the page that offers it in the graphical version.
+
+\begin{table}[htbp]\centering\small
+\caption{ProtMate's tools.}\label{tab:features}
+\begin{tabularx}{\linewidth}{@{}Xcl@{}}
+\toprule
+\textbf{Tool} & \textbf{Terminal menu} & \textbf{GUI page} \\ \midrule
+Mass needed for a \% (w/v) solution & 1 & Weight to Volume Ratio \\
+Volume needed for a \% (w/v) solution & 2 & Weight to Volume Ratio \\
+Protein concentration from one A280 reading & 3 & Protein Concentration (A280) \\
+Protein concentration from several A280 readings (typed) & 4 & Multiple A280 Readings \\
+Protein concentration from several A280 readings (from a file) & 5 & Multiple A280 Readings (\gui{Import\ldots}) \\
+Extinction coefficient from residue counts & 6 & Extinction Coefficient \\
+Full analysis of a protein sequence & 7 & Sequence Analysis \\
+Nucleic acid concentration from A260 & 8 & Nucleic Acid Concentration (A260) \\
+Primer/oligonucleotide melting temperature & 9 & Primer Melting Point \\
+Body mass index & 10 & Body Mass Index \\
+Factorial & 11 & Factorial \\
+Mass/volume percent to molar concentration & \cmd{pmol}\textsuperscript{*} & Mass/Volume Percent to Molar Conc. \\ \midrule
+Rename oscillation (diffraction) images for Mosflm & 12 & Rename Oscillation Files \\
+AutoDock Vina configuration file (and run Vina) & 13 & AutoDock Vina Configuration \\
+PDBQT to PDB conversion & 14 & PDBQT to PDB \\
+X-PLOR/CNS code to solvate a protein & 15 & Solvate a Protein (X-PLOR) \\
+Open a structure in RasMol & \cmd{open} & \menupath{File}{Open in RasMol\ldots} \\
+\bottomrule
+\multicolumn{3}{@{}l}{\footnotesize\textsuperscript{*} Typed at the prompt; not shown in the numbered menu.}
+\end{tabularx}
+\end{table}
+
+\section{Licence and disclaimer}
+
+ProtMate is free and open-source software, released under the GNU General Public License
+version~3 (GPLv3). You may use it for any purpose, study and change its source code, and share
+copies, original or modified, provided that you pass on the same freedoms under the same licence.
+The source code is published at \repo.
+
+\begin{warning}[Disclaimer]
+ProtMate is provided without any warranty. The author assumes no liability for the accuracy of its
+calculations or for the functionality of the program. Always check results that matter (for example
+concentrations used to prepare samples, or values you intend to publish) by an independent method.
+The body mass index calculator is included for convenience only and is not medical advice.
+Appendix~\ref{app:licence} gives the full terms.
+\end{warning}
+
+\section{Conventions in this guide}
+
+\begin{itemize}
+  \item \cmd{Monospaced text} is something you type, or the name of a file or program.
+  \item \gui{Bold sans-serif text} is a button, field or menu in the graphical version, and
+        \menupath{File}{Quit} means ``open the \gui{File} menu and choose \gui{Quit}''.
+  \item \key{Return} is a key on the keyboard. On some keyboards it is labelled \key{Enter}.
+  \item In example terminal sessions, \inp{blue bold text} is what you type; everything else is
+        printed by ProtMate. The examples use the user name \cmd{alice}; you will see your own.
+\end{itemize}
+
+% ===========================================================================
+\chapter{Getting ProtMate}
+
+\section{System requirements}
+
+\begin{table}[htbp]\centering\small
+\caption{Requirements for the ready-to-run versions.}\label{tab:requirements}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{Platform} & \textbf{Requirements} \\ \midrule
+macOS & A Mac with Apple silicon (M1 or later) running macOS 27 or later. About 60\,MB of
+        disk space. For an Intel Mac or an earlier macOS version, build ProtMate from source
+        (Chapter~\ref{ch:source}). \\
+Windows & 64-bit Windows 10 or Windows 11 on an x64 (Intel or AMD) processor. About 35\,MB of
+          disk space. Nothing needs to be installed and administrator rights are not required. \\
+Linux & No ready-made package; build from source (Chapter~\ref{ch:linux}). You need a C++17
+        compiler, CMake 3.21 or later and, for the graphical version, Qt~6.5 or later. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+AutoDock Vina and RasMol are optional. ProtMate works without them; they are only needed for the
+``run Vina'' and ``open in RasMol'' features (Chapter~\ref{ch:external}).
+
+\section{What to download}
+
+ProtMate is published on GitHub at \repo. Ready-to-run versions are attached to each release on
+the \gui{Releases} page, \releases. Open the latest release and, under \gui{Assets}, download the
+file for your computer:
+
+\begin{table}[htbp]\centering\small
+\caption{ProtMate distribution files.}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{File} & \textbf{Contents} \\ \midrule
+\cmd{ProtMate-\pmversion.dmg} & macOS disk image containing the graphical version
+                                (\cmd{ProtMate.app}). \\
+\cmd{pmate} & macOS terminal version (a single file). \\
+\cmd{ProtMate-\pmversion-win64-portable.zip} & Windows portable package with both the graphical
+                                (\cmd{ProtMate.exe}) and terminal (\cmd{pmate.exe}) versions. \\
+\gui{Source code} (zip or tar.gz) & Everything needed to build ProtMate yourself on any
+                                platform: \cmd{core/}, \cmd{cli/}, \cmd{gui/}, \cmd{resources/},
+                                \cmd{tests/}, \cmd{docs/} and \cmd{CMakeLists.txt}. GitHub adds
+                                these archives to every release automatically. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+To get the latest, unreleased source code instead, use \gui{Code}\,$\triangleright$\,\gui{Download
+ZIP} on the repository page, or clone the repository with Git:
+
+\begin{terminal}
+git clone https://github.com/swijeyes/ProtMate.git
+\end{terminal}
+
+% ===========================================================================
+\chapter{Installing on macOS}\label{ch:mac}
+
+\section{Installing the graphical version}
+
+\begin{enumerate}
+  \item Double-click \cmd{ProtMate-\pmversion.dmg} in your Downloads folder. A window opens
+        showing the ProtMate icon and a shortcut to your Applications folder.
+  \item Drag the \gui{ProtMate} icon onto the \gui{Applications} shortcut.
+  \item Eject the disk image: click the eject symbol next to \gui{ProtMate \pmversion} in the
+        Finder sidebar, or drag the disk icon on your desktop to the Trash.
+  \item Open ProtMate from Launchpad, Spotlight (\key{Cmd}+\key{Space}, then type
+        \cmd{ProtMate}), or the Applications folder.
+\end{enumerate}
+
+\section{The first time you open ProtMate}\label{sec:gatekeeper}
+
+ProtMate is not signed with an Apple Developer ID, so the first time you open it macOS says it
+cannot verify the developer and offers only \gui{Done} or \gui{Move to Trash}. To allow it:
+
+\begin{enumerate}
+  \item Click \gui{Done} (not \gui{Move to Trash}).
+  \item Open \menupath{System Settings}{Privacy \& Security} and scroll down to the
+        \gui{Security} section. You will see a message that ProtMate was blocked.
+  \item Click \gui{Open Anyway}, confirm with your password or Touch ID, and click
+        \gui{Open Anyway} again in the dialog that follows.
+\end{enumerate}
+
+You only need to do this once. Alternatively, an administrator can clear the download flag in
+Terminal:
+
+\begin{terminal}
+xattr -dr com.apple.quarantine /Applications/ProtMate.app
+\end{terminal}
+
+\section{Installing the terminal version}
+
+The terminal version is the single file \cmd{pmate}. Put it in a folder on your command search
+path so you can run it from anywhere. Open Terminal and run:
+
+\begin{terminal}
+mkdir -p ~/bin
+mv ~/Downloads/pmate ~/bin/
+chmod +x ~/bin/pmate
+xattr -d com.apple.quarantine ~/bin/pmate   # clears the download flag
+\end{terminal}
+
+If \cmd{\textasciitilde/bin} is not already on your search path, add it (the default shell on
+macOS is zsh) and open a new Terminal window:
+
+\begin{terminal}
+echo 'export PATH="$HOME/bin:$PATH"' >> ~/.zshrc
+\end{terminal}
+
+Now type \cmd{pmate} in any Terminal window to start the terminal version. To install it for all
+users instead, copy it to \cmd{/usr/local/bin} with \cmd{sudo cp pmate /usr/local/bin/}.
+
+\section{Uninstalling}
+
+Drag \cmd{ProtMate} from the Applications folder to the Trash and delete \cmd{pmate} from wherever
+you put it. The only other thing ProtMate keeps is a small preferences file that remembers the last
+folder you used.
+
+% ===========================================================================
+\chapter{Installing on Windows}\label{ch:windows}
+
+The Windows version is \emph{portable}: it runs from its own folder and makes no changes to the
+rest of the system, so it does not need an installer or administrator rights.
+
+\section{Unpacking}
+
+\begin{enumerate}
+  \item Right-click \cmd{ProtMate-\pmversion-win64-portable.zip} in your Downloads folder and
+        choose \gui{Extract All\ldots}.
+  \item Choose where to keep ProtMate, for example \cmd{C:\textbackslash Users\textbackslash
+        \emph{you}\textbackslash Apps}, and click \gui{Extract}. This creates a folder called
+        \cmd{ProtMate-\pmversion-win64}.
+\end{enumerate}
+
+Do not run ProtMate from inside the zip file without extracting it first, and keep the folder's
+contents together:
+
+\begin{listing}
+ProtMate-1.2.0-win64\
+    ProtMate.exe           graphical version
+    pmate.exe              terminal version
+    Qt6Core.dll, Qt6Gui.dll, Qt6Widgets.dll, libc++.dll, libunwind.dll
+    platforms\qwindows.dll
+    styles\qmodernwindowsstyle.dll
+    licenses\              licence texts for the bundled libraries
+    README.txt
+    LICENSE.txt            the GNU General Public License (ProtMate's licence)
+\end{listing}
+
+\cmd{ProtMate.exe} needs every file in the folder. \cmd{pmate.exe} is self-contained and can be
+copied elsewhere on its own.
+
+\section{The first time you start ProtMate}
+
+Double-click \cmd{ProtMate.exe}. Because the program is not code-signed, Microsoft Defender
+SmartScreen may show ``Windows protected your PC''. Click \gui{More info} and then
+\gui{Run anyway}. Windows remembers your choice.
+
+To make ProtMate easier to find, right-click \cmd{ProtMate.exe} and choose \gui{Pin to Start}, or
+\gui{Show more options}\,$\triangleright$\,\gui{Send to}\,$\triangleright$\,\gui{Desktop (create shortcut)}.
+
+\section{Using the terminal version on Windows}
+
+\cmd{pmate.exe} is a console program. You can double-click it, which opens it in a console window,
+but it is usually better to start it from a terminal so the window stays open after you quit:
+
+\begin{enumerate}
+  \item Open the ProtMate folder in File Explorer, click in the address bar, type \cmd{cmd} and
+        press \key{Enter}. A Command Prompt opens in that folder. (In Windows~11 you can also
+        right-click inside the folder and choose \gui{Open in Terminal}.)
+  \item Type \cmd{pmate} and press \key{Enter}.
+\end{enumerate}
+
+To run \cmd{pmate} from any folder, add the ProtMate folder to your user \cmd{Path}: open the
+Start menu, search for \gui{Edit environment variables for your account}, select \gui{Path},
+click \gui{Edit\ldots}, then \gui{New}, and paste the folder's location. Open a new terminal
+window afterwards.
+
+\begin{note}
+The terminal version saves files and looks for input files in the \emph{current folder} of the
+terminal. Use \cmd{cd} to move to the folder that holds your data before starting \cmd{pmate}.
+\end{note}
+
+\section{Uninstalling}
+
+Delete the ProtMate folder and any shortcuts you made. ProtMate also keeps the last folder you
+used in the registry key \cmd{HKEY\_CURRENT\_USER\textbackslash Software\textbackslash
+ProtMate}, which you can delete with the Registry Editor if you wish.
+
+% ===========================================================================
+\chapter{Installing on Linux}\label{ch:linux}
+
+There is no ready-made Linux package, so you build ProtMate from its source code. This takes a few
+minutes and produces both the graphical (\cmd{ProtMate}) and the terminal (\cmd{pmate}) versions.
+
+\section{Install the build tools}
+
+The graphical version needs Qt~6.5 or later. Recent distributions provide it, for example Debian~13,
+Ubuntu~24.10 and later, Fedora~39 and later, and Arch Linux. Debian~12 and Ubuntu~22.04/24.04 ship
+an older Qt~6, so on those either build only the terminal version
+(Section~\ref{sec:cli-only}) or install a newer Qt from \url{https://www.qt.io/download-open-source}.
+
+\begin{description}
+  \item[Debian, Ubuntu and derivatives]\leavevmode
+\begin{terminal}
+sudo apt update
+sudo apt install build-essential cmake qt6-base-dev
+\end{terminal}
+  \item[Fedora]\leavevmode
+\begin{terminal}
+sudo dnf install gcc-c++ cmake qt6-qtbase-devel
+\end{terminal}
+  \item[Arch Linux and derivatives]\leavevmode
+\begin{terminal}
+sudo pacman -S --needed base-devel cmake qt6-base
+\end{terminal}
+\end{description}
+
+To check the Qt version, run \cmd{qmake6 -{}-version} or look for the package version in your
+package manager.
+
+\section{Build}
+
+Download the source code from the latest release (\releases) and unpack it, or clone the
+repository (this needs \cmd{git}, which you can install with your package manager):
+
+\begin{terminal}
+git clone https://github.com/swijeyes/ProtMate.git
+cd ProtMate
+\end{terminal}
+
+Then, in a terminal in the folder that contains \cmd{CMakeLists.txt}, run:
+
+\begin{terminal}
+cmake -S . -B build
+cmake --build build -j
+ctest --test-dir build        # optional: runs ProtMate's self-tests
+\end{terminal}
+
+The last command should finish with \cmd{100\% tests passed}. The programs are now in the
+\cmd{build} folder; try them with \cmd{./build/ProtMate} and \cmd{./build/pmate}.
+
+\section{Install}
+
+To install both programs into \cmd{/usr/local/bin}:
+
+\begin{terminal}
+sudo cmake --install build
+\end{terminal}
+
+Use \cmd{cmake -{}-install build -{}-prefix \textasciitilde/.local} instead to install just for
+yourself without \cmd{sudo} (the programs go to \cmd{\textasciitilde/.local/bin}, which most
+distributions already have on the search path).
+
+\section{Adding ProtMate to the applications menu}
+
+To start the graphical version from your desktop's application launcher, copy the icon and create
+a desktop entry:
+
+\begin{terminal}
+mkdir -p ~/.local/share/icons ~/.local/share/applications
+cp resources/pmate_icon.png ~/.local/share/icons/protmate.png
+cat > ~/.local/share/applications/protmate.desktop <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=ProtMate
+Comment=Laboratory formula calculator
+Exec=ProtMate
+Icon=protmate
+Categories=Science;Education;
+EOF
+\end{terminal}
+
+If you installed with \cmd{-{}-prefix \textasciitilde/.local}, change the \cmd{Exec} line to the
+full path, for example \cmd{Exec=/home/\emph{you}/.local/bin/ProtMate}.
+
+\section{Building only the terminal version}\label{sec:cli-only}
+
+The terminal version needs no Qt at all. This works on any Linux system with a C++17 compiler and
+CMake, including servers without a desktop:
+
+\begin{terminal}
+cmake -S . -B build -DPMATE_BUILD_GUI=OFF
+cmake --build build -j
+sudo cmake --install build
+\end{terminal}
+
+\section{Uninstalling}
+
+CMake records what it installed in \cmd{build/install\_manifest.txt}. To remove it:
+
+\begin{terminal}
+xargs sudo rm -v < build/install_manifest.txt
+\end{terminal}
+
+Also delete these files if you created or used them:
+\begin{itemize}
+  \item \cmd{\textasciitilde/.local/share/applications/protmate.desktop}
+  \item \cmd{\textasciitilde/.local/share/icons/protmate.png}
+  \item \cmd{\textasciitilde/.config/ProtMate/ProtMate.conf} (ProtMate's settings)
+\end{itemize}
+
+% ===========================================================================
+\chapter{Building from source on any platform}\label{ch:source}
+
+The same steps work on macOS and Windows, which is useful on an Intel Mac, an older macOS version,
+or to make a build of your own. Get the source code from \repo{} as described in
+Chapter~\ref{ch:linux}, and run the commands below in the folder that contains
+\cmd{CMakeLists.txt}. Because ProtMate is licensed under the GPL, you are free to modify it; if you
+distribute a modified version, you must also make its source code available under the GPL.
+
+\section{Requirements}
+
+\begin{itemize}
+  \item CMake 3.21 or later.
+  \item A C++17 compiler: Apple Clang (Xcode or the Command Line Tools) on macOS, GCC or Clang on
+        Linux, Microsoft Visual C++ 2019 or later, or MinGW on Windows.
+  \item Qt~6.5 or later with the Widgets module, for the graphical version.
+\end{itemize}
+
+\section{macOS}
+
+With Homebrew (\url{https://brew.sh}):
+
+\begin{terminal}
+xcode-select --install          # if you do not already have a compiler
+brew install cmake qt
+cmake -S . -B build -DCMAKE_PREFIX_PATH="$(brew --prefix qt)"
+cmake --build build -j
+open build/ProtMate.app
+\end{terminal}
+
+To make a self-contained copy of the app that you can move to another Mac, run
+\cmd{macdeployqt build/ProtMate.app}. The \cmd{README.md} file in the source folder describes the
+remaining packaging steps.
+
+\section{Windows}
+
+Install Qt with the Qt Online Installer (\url{https://www.qt.io/download-open-source}), choosing
+the MSVC or MinGW build that matches your compiler, and install CMake. Then, in a developer command
+prompt:
+
+\begin{terminal}
+cmake -S . -B build -DCMAKE_PREFIX_PATH=C:\Qt\6.11.2\msvc2022_64
+cmake --build build --config Release
+C:\Qt\6.11.2\msvc2022_64\bin\windeployqt build\Release\ProtMate.exe
+\end{terminal}
+
+Adjust the Qt path to the version and compiler you installed.
+
+\section{Build options}
+
+\begin{table}[htbp]\centering\small
+\caption{Options for the \cmd{cmake -S . -B build} step.}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{Option} & \textbf{Effect} \\ \midrule
+\cmd{-DPMATE\_BUILD\_GUI=OFF} & Build only the terminal version; Qt is not needed. \\
+\cmd{-DPMATE\_BUILD\_TESTS=OFF} & Skip the self-tests. \\
+\cmd{-DPMATE\_SANITIZE=ON} & Developer builds with AddressSanitizer and UndefinedBehaviorSanitizer. \\
+\cmd{-DCMAKE\_PREFIX\_PATH=\emph{dir}} & Where to find Qt, if CMake cannot find it by itself. \\
+\cmd{-DCMAKE\_BUILD\_TYPE=Debug} & Debugging build (the default is \cmd{Release}). \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ===========================================================================
+\chapter{Optional programs: AutoDock Vina and RasMol}\label{ch:external}
+
+ProtMate can start two external programs if they are installed:
+
+\begin{description}
+  \item[AutoDock Vina] (\url{https://vina.scripps.edu}) runs a docking calculation with the
+        configuration file ProtMate writes.
+  \item[RasMol] (\url{http://www.openrasmol.org}) displays a PDB structure.
+\end{description}
+
+ProtMate looks for them on your command search path (\cmd{PATH}) under the names \cmd{vina} and
+\cmd{rasmol} (\cmd{vina.exe} and \cmd{rasmol.exe} on Windows). Only folders given as full paths
+are searched, never the current folder, so a stray program in your data folder cannot be started
+by mistake. To check that a program can be found, run \cmd{which vina} (macOS, Linux) or
+\cmd{where vina} (Windows) in a terminal. If nothing is printed, add the program's folder to
+\cmd{PATH} and restart ProtMate.
+
+When a program cannot be found, the graphical version disables the corresponding button or menu
+item and says so, and the terminal version prints a message. Everything else keeps working; for
+example you can still write a Vina configuration file and run Vina yourself.
+
+\begin{note}
+On macOS, applications started from the Dock or Finder do not see changes you make to
+\cmd{PATH} in \cmd{\textasciitilde/.zshrc}. If the graphical version does not find Vina or RasMol
+although \cmd{which} does, start it from Terminal with \cmd{open -a ProtMate}, or install the
+program in \cmd{/usr/local/bin}.
+\end{note}
+
+% ===========================================================================
+\chapter{Quick start}
+
+\section{Graphical version}
+
+\begin{enumerate}
+  \item Start ProtMate. The window shows a list of tools on the left.
+  \item Click \gui{Protein Concentration (A280)}.
+  \item Fill in the fields: total volume of protein \cmd{2.5}\,ml, A280 \cmd{0.42}, total liquid in
+        the cuvette \cmd{100}\,\ul, protein in the cuvette \cmd{10}\,\ul{} and extinction
+        coefficient \cmd{0.92}.
+  \item The results appear immediately: dilution factor 10, protein concentration 4.57\,mg/ml and
+        11.425\,mg of protein in total.
+\end{enumerate}
+
+\section{Terminal version}
+
+\begin{enumerate}
+  \item Open a terminal and type \cmd{pmate}, then press \key{Return}.
+  \item Type \cmd{mnu} and press \key{Return} to see the main menu.
+  \item Type \cmd{3} and press \key{Return}, then answer the questions with the numbers above.
+  \item Read the results, press \key{Return} to go back, and type \cmd{0} to quit.
+\end{enumerate}
+
+\begin{session}
+alice% > \inp{3}
+
+Enter total volume of protein (in ml): \inp{2.5}
+Enter A280 of protein: \inp{0.42}
+Enter total volume of liquid in cuvette (protien + buffer) (in ul): \inp{100}
+Enter volume of protein in cuvette (ul): \inp{10}
+Enter protein's extinction coefficient: \inp{0.92}
+
+Dilution factor: 10
+
+Protein concentration: 4.57 mg/ml
+Total amount of protein present in 2.5 ml: 11.425 mg
+
+Press the Return key to continue....
+\end{session}
+
+% ===========================================================================
+\chapter{Using the graphical version}\label{ch:gui}
+
+\section{The main window}
+
+\screenshot{gui_main}{The ProtMate window. Tools are listed on the left, grouped into
+\gui{Calculators} and \gui{File Utilities}; the selected tool fills the right-hand side.}
+
+The list on the left contains every tool, in the same groups as the terminal version's menu. Click
+a tool to open it; the values you entered on each page are kept while ProtMate is running, so you
+can move between tools freely. You can drag the divider between the list and the page to change
+their widths, and pages scroll if the window is too small for them.
+
+\section{How the pages work}
+
+\begin{itemize}
+  \item \textbf{Results update as you type.} There is no ``Calculate'' button.
+  \item \textbf{Number fields} accept only sensible values and show their units. Type a value, or use
+        the arrows, the \key{$\uparrow$}/\key{$\downarrow$} keys or the mouse wheel to change it.
+  \item \textbf{Problems are explained on the page}, for example an unknown residue in a sequence
+        or a file name that is not allowed, and the save buttons stay disabled until they are
+        fixed.
+  \item \textbf{Save report\ldots} buttons open the standard save dialog. The file has exactly the
+        same contents as the report the terminal version writes. The save dialog asks before
+        replacing an existing file, and a file is only replaced once the new version has been
+        written completely.
+  \item \textbf{Open buttons} (\gui{Open .seq file\ldots}, \gui{Browse\ldots}, \gui{Import\ldots})
+        use the standard open dialog, which starts in the folder you used last.
+\end{itemize}
+
+\section{Menus}
+
+\begin{description}
+  \item[\menupath{File}{Open in RasMol\ldots}] Choose a PDB file to display in RasMol. The item is
+        disabled, and says ``RasMol not found'', if RasMol is not installed
+        (Chapter~\ref{ch:external}).
+  \item[\menupath{File}{Quit}] Close ProtMate (\key{Cmd}+\key{Q} on macOS, \key{Ctrl}+\key{Q}
+        elsewhere). If AutoDock Vina is running, it is stopped.
+  \item[\menupath{Help}{About ProtMate}] Shows the version, the copyright and licence notice, the
+        disclaimer, a link to the project on GitHub, and information about your system.
+  \item[\menupath{Help}{About Qt}] Shows the version and licence of the Qt toolkit that the
+        graphical version is built with.
+\end{description}
+On macOS, both \gui{About} items are in the \gui{ProtMate} application menu.
+
+\section{Calculators}
+
+\subsection{Weight to Volume Ratio}
+
+Two small calculators for \% (w/v) solutions (see Figure~\ref{fig:gui_main}):
+
+\begin{itemize}
+  \item \gui{Calculate weight}: enter the weight to volume percent and the desired volume (ml) to
+        get the mass of solid to weigh out (g). For example, 5\% in 200\,ml needs 10\,g.
+  \item \gui{Calculate volume}: enter the percent and the weight of sample you have (g) to get the
+        volume of liquid to dissolve it in (ml).
+\end{itemize}
+
+\subsection{Protein Concentration (A280)}
+
+\screenshot{gui_protein}{Protein concentration from a single A280 reading.}
+
+Calculates the concentration and total amount of a protein from one absorbance reading at 280\,nm.
+
+\begin{description}
+  \item[Total volume of protein] The volume of your whole protein sample, in ml.
+  \item[A280 of protein] The absorbance reading.
+  \item[Total liquid in cuvette] The total volume in the cuvette (protein plus buffer), in \ul.
+  \item[Protein in cuvette] How much of your protein sample is in the cuvette, in \ul. Together
+        with the total, this gives the dilution factor.
+  \item[Extinction coefficient] The absorbance at 280\,nm of a 1\,mg/ml solution of your protein
+        in a 1\,cm cuvette (sometimes written $A_{280}^{0.1\%}$). The \gui{Extinction Coefficient}
+        and \gui{Sequence Analysis} pages calculate this value for you; it is the figure they
+        label ``Absorbance (280\,nm, 1\,mg/ml, 1\,cm)''.
+\end{description}
+
+The results are the dilution factor, the protein concentration (mg/ml) and the total amount of
+protein (mg). See Appendix~\ref{app:formulas} for the formulas.
+
+\subsection{Multiple A280 Readings}
+
+\screenshot{gui_multi}{Several readings at once, for example the fractions from a column.}
+
+Use this page when you have several samples measured the same way, such as fractions from a
+purification. Enter the cuvette volumes and extinction coefficient once at the top, then one row
+per sample with its A280 and its volume (ml). The concentration and yield of each sample are
+filled in as you type.
+
+\begin{itemize}
+  \item \gui{Add reading} adds a row; \gui{Remove selected} deletes the selected rows;
+        \gui{Clear} removes them all.
+  \item \gui{Import\ldots} reads readings from a text file (Section~\ref{sec:readings-file}),
+        replacing the rows in the table. Up to 100{,}000 readings are read.
+  \item \gui{Save report\ldots} saves a tab-separated table that opens directly in a spreadsheet.
+  \item Rows that are incomplete or contain something other than a number are reported below the
+        table, and must be fixed before saving.
+\end{itemize}
+
+\subsection{Extinction Coefficient}
+
+\screenshot{gui_extinction}{Extinction coefficient from residue counts.}
+
+Enter the number of tyrosines, tryptophans and cysteines and the molecular weight (Da). The page
+shows the molar extinction coefficient of the native protein in water
+(M$^{-1}$\,cm$^{-1}$) and the absorbance at 280\,nm of a 1\,mg/ml solution in a 1\,cm cuvette.
+\gui{Save report\ldots} saves both values. If you have the protein's sequence, the
+\gui{Sequence Analysis} page counts the residues for you.
+
+\subsection{Sequence Analysis}
+
+\screenshot{gui_sequence}{Analysing a protein sequence.}
+
+Analyses a protein or peptide sequence written in one-letter amino acid codes.
+
+\begin{enumerate}
+  \item Paste the sequence into the box, or click \gui{Open .seq file\ldots} to load one
+        (Section~\ref{sec:seq-files}). Spaces and line breaks are ignored, and upper or lower case
+        both work.
+  \item \gui{Residues in sequence} shows the length. To analyse part of the sequence (a domain, for
+        example), change \gui{First residue} and \gui{Final residue}; they start at the whole
+        sequence.
+  \item The report below shows the amino acid composition (number and percentage of each residue),
+        the chemical formula, the molecular weight, the extinction coefficient and the absorbance of
+        a 1\,mg/ml solution.
+  \item To save the report, type a name for the protein in the box at the bottom (it appears in the
+        report's heading) and click \gui{Save report\ldots}. The report also records your user
+        name as the operator.
+\end{enumerate}
+
+Characters that are not one of the 20 standard amino acid codes (for example \cmd{X}, \cmd{B},
+\cmd{Z}, \cmd{*} or digits) are counted as \cmd{Unk}. Their positions are listed at the top of
+the report with a warning to check the sequence, and they contribute nothing to the formula or
+molecular weight.
+
+\subsection{Nucleic Acid Concentration (A260)}
+
+\screenshot{gui_nucleic}{Nucleic acid concentration from A260.}
+
+Choose dsDNA, RNA or Oligonucleotide, enter the OD at 260\,nm and the dilution factor (a whole
+number; 1 if undiluted). The concentration is shown in \textmu g/ml. A warning appears when the
+reading is outside 0.1--10, where absorbance readings become unreliable.
+
+\subsection{Primer Melting Point}
+
+\screenshot{gui_melt}{Primer melting temperature.}
+
+Estimates the melting temperature ($T_m$) of a primer or oligonucleotide. Choose how to describe it:
+
+\begin{itemize}
+  \item \gui{Enter length and G+C count}: give the number of nucleotides and how many are G or C.
+  \item \gui{From a sequence}: paste a DNA sequence or click \gui{Open .seq file\ldots}. Only A, C,
+        G and T are allowed (in either case); the first other character is reported with its
+        position. The counts of each base are shown with the results.
+\end{itemize}
+
+Enter the total salt (Na$^+$) concentration in molar; 0.05\,M is typical. The page shows the G--C
+content, the basic melting point and the salt-adjusted melting point. \gui{Save report\ldots}
+saves them.
+
+\subsection{Mass/Volume Percent to Molar Conc.}
+
+\screenshot{gui_percent}{Converting a percentage to a molar concentration.}
+
+Converts a percentage solution to molarity. Choose:
+
+\begin{itemize}
+  \item \gui{Mass concentration (\% w/v)}: enter the percentage and the formula weight (g/mol).
+        For example, 5\% (w/v) NaCl (58.44\,g/mol) is 0.86\,M (855.58\,mM).
+  \item \gui{Volume percent (\% v/v)}, for liquids: also enter the density of the pure compound
+        (g/ml).
+\end{itemize}
+
+The result is shown in both M and mM.
+
+\subsection{Body Mass Index}
+
+Enter height in feet and inches and weight in pounds. The page shows the height in metres, the
+weight in kilograms, the body mass index with its category, and the weight range (lb) that
+corresponds to a normal BMI for that height. The reference ranges from the US Centers for Disease
+Control and Prevention are shown on the page.
+
+\subsection{Factorial}
+
+Enter a whole number from 0 to 20 to see its factorial. (21! is too large to be represented
+exactly.)
+
+\section{File utilities}
+
+\subsection{Rename Oscillation Files}
+
+\screenshot{gui_rename}{Renaming diffraction images, with a preview of every change.}
+
+Renames a series of diffraction (oscillation) images into the \cmd{prefix\_\#\#\#.osc} form that
+Mosflm reads. For example, \cmd{1.0001}, \cmd{1.0002}, \ldots{} become \cmd{a\_001.osc},
+\cmd{a\_002.osc}, \ldots
+
+\begin{enumerate}
+  \item \gui{Directory}: click \gui{Browse\ldots} and choose the folder that holds the images.
+  \item \gui{Number of files} and \gui{Initial frame number}: how many images there are and the
+        frame number of the first one.
+  \item \gui{Current file string}: the part of the current names before the frame number. For
+        images called \cmd{1.0001}, \cmd{1.0002}, \ldots{} enter \cmd{1.}. ProtMate expects the
+        current names to be this string followed by \cmd{0} and the frame number padded to three
+        digits (\cmd{1.0001}).
+  \item \gui{New file string}: the start of the new names; \cmd{a\_} gives \cmd{a\_001.osc}.
+  \item Check the preview. Each file is marked \gui{Ready}, \gui{Not found}, or
+        \gui{New name already exists}, and a summary appears below the table.
+  \item Click \gui{Rename\ldots} and confirm. Only files marked \gui{Ready} are renamed.
+\end{enumerate}
+
+ProtMate never overwrites a file: if the new name already exists, that file is skipped. The file
+strings may contain letters, digits and \cmd{. \_ - +}, and must not start with \cmd{-}.
+
+\subsection{AutoDock Vina Configuration}
+
+\screenshot{gui_vina}{Writing a configuration file for AutoDock Vina.}
+
+Writes the configuration file that AutoDock Vina needs for a docking run, with a cubic search
+box, and can then run Vina.
+
+\begin{enumerate}
+  \item Choose the \gui{Receptor} and \gui{Ligand} files (PDBQT format) with \gui{Browse\ldots}, or
+        type their names. Names relative to a folder are interpreted from the folder where you save
+        the configuration file.
+  \item Enter the centre of the search box (\gui{Grid centre X}, \gui{Y}, \gui{Z}, in \AA) and the
+        length of one side of the box (\AA).
+  \item Check the \gui{Configuration preview}. Besides your values, the file sets the output
+        file (\cmd{out = all.pdbqt}) and \cmd{exhaustiveness = 8}.
+  \item Click \gui{Save configuration\ldots}. The suggested name is \cmd{conf.txt}, in the
+        receptor's folder.
+  \item If Vina is installed, click \gui{Run Vina}. Vina runs in the folder of the configuration
+        file; its output appears in the log at the bottom of the page and is also written to
+        \cmd{vina\_log.txt}. The docked poses are written to \cmd{all.pdbqt} in the same folder.
+        \gui{Stop} ends a run early.
+\end{enumerate}
+
+\gui{Run Vina} is enabled only when the configuration shown has been saved, so the file Vina reads
+always matches what you see. If you change a value, save again before running. File names must
+not contain \cmd{\#} or control characters.
+
+\subsection{PDBQT to PDB}
+
+Converts a PDBQT file (the format AutoDock uses) to a standard PDB file in which the B-factor
+column holds the partial atomic charges. Choose the PDBQT file, click
+\gui{Convert and save\ldots}, and choose where to save the \cmd{.pdb} file.
+
+\subsection{Solvate a Protein (X-PLOR)}
+
+\screenshot{gui_xplor}{Generating X-PLOR/CNS scripts to solvate a protein.}
+
+Generates X-PLOR (or CNS) input that overlays a protein on a pre-equilibrated solvent shell, in two
+stages:
+
+\begin{description}
+  \item[Stage 1] reads the protein and solvent and writes \cmd{overlay1.pdb}, containing the
+        solvent molecules within 6.0\,\AA{} of any protein heavy atom.
+  \item[Stage 2] reads the protein and the solvent produced by stage 1, deletes solvent molecules
+        within 2.3\,\AA{} of the protein (which would clash with it), and writes
+        \cmd{overlay2.pdb}.
+\end{description}
+
+Choose \gui{Stage 1}, \gui{Stage 2} or \gui{Both stages} under \gui{Generate}, and fill in the
+protein's PDB coordinate and MTF structure files and the solvent's files. For stage 2, the solvent
+files are the ones produced by stage 1 (with \gui{Both stages}, they go in the
+\gui{Stage 2 input} box). The scripts are shown on the \gui{Stage 1 script} and
+\gui{Stage 2 script} tabs; save them with \gui{Save stage 1\ldots} and \gui{Save stage 2\ldots}
+(\cmd{.inp} files) and run them in X-PLOR or CNS. The solvent segment is expected to have the
+segment ID \cmd{W}.
+
+\begin{note}
+X-PLOR cannot handle spaces in file names, so the names in these scripts may contain only letters,
+digits and \cmd{. \_ - / +}, and must not start with \cmd{-}. The page tells you if a name is not
+allowed.
+\end{note}
+
+% ===========================================================================
+\chapter{Using the terminal version}\label{ch:cli}
+
+\section{Starting pmate}
+
+Open a terminal, change to the folder that holds your data with \cmd{cd}, and type \cmd{pmate}:
+
+\begin{description}
+  \item[macOS] Open Terminal (in \menupath{Applications}{Utilities}), then for example
+        \cmd{cd \textasciitilde/Documents/xtal} and \cmd{pmate}.
+  \item[Linux] Open your terminal application, \cmd{cd} to your data and type \cmd{pmate}.
+  \item[Windows] Open Command Prompt, PowerShell or Windows Terminal, \cmd{cd} to your data and type
+        \cmd{pmate} (or the full path to \cmd{pmate.exe} if its folder is not on your \cmd{Path}).
+\end{description}
+
+The terminal version reads input files from, and saves files to, the current folder unless you type
+a path. File names are typed without quotation marks.
+
+\section{The prompt}
+
+When \cmd{pmate} starts it shows a short heading and waits for a command:
+
+\begin{session}
+ProtMate
+Developed by Sanjeeva Wijeyesakere
+Ver 1.2.0       Session started on Sat Oct 25 09:15:02 PDT 2026
+
+alice% >
+\end{session}
+
+The prompt \cmd{alice\% >} shows your user name. At the prompt you can type:
+
+\begin{itemize}
+  \item \cmd{mnu} (or \cmd{menu}) to show the main menu;
+  \item a menu number, such as \cmd{3}, or a command name, such as \cmd{prot}, to start a tool;
+  \item \cmd{?} or \cmd{help} for a list of commands;
+  \item \cmd{0} (or \cmd{quit}, \cmd{exit}, \cmd{stop}, \cmd{bye}) to leave ProtMate.
+\end{itemize}
+
+Each command is followed by \key{Return}. Commands are case-sensitive: type them in lower case as
+shown. Pressing \key{Return} on its own just shows the prompt again, and an unrecognised command
+prints \cmd{Invalid Response ...}.
+
+\section{The main menu}\label{sec:mnu}
+
+Type \cmd{mnu} at the prompt to see the main menu:
+
+\begin{session}
+alice% > \inp{mnu}
+ProtMate
+Developed by Sanjeeva Wijeyesakere
+Ver 1.2.0       Session started on Sat Oct 25 09:15:02 PDT 2026
+
+ProtMate Main Menu
+==================
+
+Calculators:
+ 1.  Weight to Volume Ratio - Calculate weight
+ 2.  Weight to Volume Ratio - Calculate volume
+ 3.  Calculate Protein Concentration Using A280 (Single Reading)
+ 4.  Calculate Protein Concentration Using A280 (Multiple Readings)
+ 5.  Calculate Protein Concentration Using A280 (Multiple Readings, auto input)
+ 6.  Calculate Protein Extinction Coefficient
+ 7.  Calculate Protein Extinction Coefficient From a Sequence (*.seq) File
+ 8.  Calculate Concentration of a Nucleic Acid from A260
+ 9.  Calculate Melting Point of a Primer/Oligonucleotide
+ 10. Calculate your Body Mass Index (BMI)
+ 11. Factorial Calculator
+
+External Interfaces & File Utilities:
+ 12. Rename Oscillation Files
+ 13. Generate Configuration/Input File to Run AutoDock Vina
+ 14. Convert a PDBQT file to a PDB file
+ 15. Generate XPLOR code to solvate a protein structure
+
+Other Functions:
+ ?   - Help (Command line commands)
+ ls  - List Files in the Current Directory
+ pwd - Display the name of the Current Directory
+ sys - Issue a System Command
+ abt - About Protmate
+ 0   - Quit
+
+*** For a complete list of avaiable functions, consult the help menu
+*** (enter "help" or "?" at the prompt)
+
+alice% >
+\end{session}
+
+Type the number of a menu item and press \key{Return}. Each item also has a command name, which you
+can type instead of the number (Table~\ref{tab:commands}). The menu is a reminder only: you can
+type any number or command at the prompt at any time, whether or not the menu is on the screen.
+
+\section{How the tools work}
+
+\begin{itemize}
+  \item A tool asks its questions one at a time. Type the answer and press \key{Return}.
+  \item Numbers can be whole or decimal (\cmd{0.42}). Do not type units; each question says which
+        unit it expects (for example ml or \ul).
+  \item When a tool finishes, it usually shows \cmd{Press the Return key to continue....}. Press
+        \key{Return} to clear the screen and go back to the prompt.
+  \item Many tools let you type \cmd{0} at the first question to leave without doing anything.
+        Tools that need a number at that point cannot offer this; you can always finish the
+        questions and discard the result.
+  \item Several tools offer to save their results. Answer \cmd{yes} (in full, in lower case) to save;
+        anything else means no. Then type a file name. If the file already exists, ProtMate asks
+        \cmd{Overwrite it (yes/no)?} and only replaces it if you type \cmd{yes}.
+  \item Where a tool asks for a file name, type a single name or path without spaces, except where
+        this guide says otherwise.
+\end{itemize}
+
+\begin{warning}
+If you type something that is not a number where a number is expected, the value is taken as 0 and
+the remaining questions of that tool may be skipped. The tool finishes and returns you to the
+prompt, so just start it again. To quit ProtMate immediately at any time, press
+\key{Ctrl}+\key{C}.
+\end{warning}
+
+% ---------------------------------------------------------------------------
+\section{Menu options in detail}
+
+The rest of this section describes each item of the main menu. The command names shown in brackets
+can be typed instead of the number.
+
+\menuoption{1. Weight to Volume Ratio -- Calculate weight}
+\typed{\cmd{1}, \cmd{wv-weight}}
+
+Works out how much solid to weigh out to make a solution of a given percentage (w/v).
+
+\begin{prompts}
+Enter weight to volume percent ( \%(w/v)): & The concentration you want, as a percentage, e.g. \cmd{5}. \\
+Enter desired volume (in ml): & The final volume of the solution. \\
+\end{prompts}
+
+\begin{session}
+alice% > \inp{1}
+
+Enter weight to volume percent ( %(w/v)): \inp{5}
+Enter desired volume (in ml): \inp{200}
+
+Mass of sample required = 10 g
+\end{session}
+
+\menuoption{2. Weight to Volume Ratio -- Calculate volume}
+\typed{\cmd{2}, \cmd{wv-vol}}
+
+The reverse of option 1: how much liquid to dissolve a weighed sample in.
+
+\begin{prompts}
+Enter weight to volume percent ( \%(w/v)): & The concentration you want, as a percentage. \\
+Enter sample weight (in g): & The mass of solid you have. \\
+\end{prompts}
+
+The result is printed as \cmd{Volume of liquid required = \ldots{} ml}.
+
+\menuoption{3. Protein Concentration Using A280 (Single Reading)}
+\typed{\cmd{3}, \cmd{prot}}
+
+Calculates a protein's concentration and total amount from one absorbance reading at 280\,nm.
+
+\begin{prompts}
+Enter total volume of protein (in ml): & The volume of your whole protein sample. \\
+Enter A280 of protein: & The absorbance reading. \\
+Enter total volume of liquid in cuvette (protien + buffer) (in ul): & Everything in the cuvette, in \ul. \\
+Enter volume of protein in cuvette (ul): & How much of your sample is in the cuvette, in \ul. \\
+Enter protein's extinction coefficient: & The absorbance of a 1\,mg/ml solution in a 1\,cm cuvette
+  (the ``Absorbance (at 280nm at 1 mg/ml)'' value from options 6 and 7). \\
+\end{prompts}
+
+ProtMate prints the dilution factor (total cuvette volume divided by protein volume), the
+concentration in mg/ml and the total amount of protein in mg. A full example is in the Quick start
+chapter.
+
+\menuoption{4. Protein Concentration Using A280 (Multiple Readings)}
+\typed{\cmd{4}, \cmd{mprot}}
+
+The same calculation for several samples that share the same cuvette set-up and extinction
+coefficient, such as fractions from a column.
+
+\begin{prompts}
+Enter total volume of liquid in cuvette (protien + buffer) (in ul): & As for option 3. \\
+Enter volume of protein in cuvette (ul): & As for option 3. \\
+Enter protein's extinction coefficient: & As for option 3. \\
+Enter number of A280 readings: & How many samples (1 to 100{,}000). \\
+Enter A280 for sample \emph{n}: & Each sample's absorbance \ldots \\
+Enter yield volume for your sample \emph{n} (mL): & \ldots{} and its volume in ml. \\
+\end{prompts}
+
+ProtMate prints a table with each sample's A280, dilution factor, concentration (mg/ml) and yield
+(mg), and then offers to save it (\cmd{Do you want to save your data (yes/no)?}). The saved file is
+a tab-separated table (Section~\ref{sec:reports}).
+
+\menuoption{5. Protein Concentration Using A280 (Multiple Readings, auto input)}
+\typed{\cmd{5}, \cmd{mprot\_auto}}
+
+Like option 4, but reads the readings from a text file instead of asking for each one. Prepare the
+file first (Section~\ref{sec:readings-file}): each sample is an A280 value followed by its volume
+in ml.
+
+\begin{prompts}
+Enter total volume of liquid in cuvette (protien + buffer) (in ul): & As for option 3. \\
+Enter volume of protein in cuvette (ul): & As for option 3. \\
+Enter protein's extinction coefficient: & As for option 3. \\
+Enter name of input file: & The readings file, e.g. \cmd{readings.txt}. \\
+\end{prompts}
+
+\begin{session}
+alice% > \inp{5}
+
+Enter total volume of liquid in cuvette (protien + buffer) (in ul): \inp{100}
+Enter volume of protein in cuvette (ul): \inp{10}
+Enter protein's extinction coefficient: \inp{0.92}
+
+Enter name of input file: \inp{readings.txt}
+
+
+Sample #        A280    Dil.    [Protein] (mg/ml)       Yield (mg)
+1               0.42    10      4.57                    11.425
+2               0.38    10      4.13                    8.26
+3               0.21    10      2.28                    6.84
+
+Do you want to save your data (yes/no)? \inp{yes}
+Enter name of output file: \inp{yields.txt}
+
+Press the Return key to continue....
+\end{session}
+
+Up to 100{,}000 readings are used; if the file has more, ProtMate says so and uses the first
+100{,}000.
+
+\menuoption{6. Calculate Protein Extinction Coefficient}
+\typed{\cmd{6}}
+
+Calculates a protein's extinction coefficient from its numbers of tyrosine, tryptophan and cysteine
+residues. (To start from a sequence instead, use option 7.)
+
+\begin{prompts}
+Enter number of Tyrosines in protein: & A whole number. \\
+Enter number of Tryptophans in protein: & A whole number. \\
+Enter number of Cysteines in protein: & A whole number. \\
+Enter molecular weight of protein (in daltons): & The molecular weight, e.g. \cmd{16146.5}. \\
+\end{prompts}
+
+ProtMate prints the molar extinction coefficient of the native protein in water and the absorbance
+at 280\,nm of a 1\,mg/ml solution in a 1\,cm cuvette. It then offers to save both values to a file.
+
+\begin{note}
+After the save question, the screen is cleared and the prompt returns without pausing. Note the
+results, or save them, before you answer.
+\end{note}
+
+\menuoption{7. Calculate Protein Extinction Coefficient From a Sequence (*.seq) File}
+\typed{\cmd{7}, \cmd{ext}}
+
+Analyses a protein sequence stored in a text file (Section~\ref{sec:seq-files}): composition,
+chemical formula, molecular weight, extinction coefficient and absorbance of a 1\,mg/ml solution.
+
+\begin{prompts}
+Enter name of sequence file: & The sequence file, e.g. \cmd{a.seq}. \\
+Enter number of the first residue (1 to start at first residue;  0 to exit): & \cmd{1} for the
+  whole sequence, a later number to start part-way through, or \cmd{0} to leave. \\
+Enter number of the final residue (to end at the final residue, enter 0): & \cmd{0} for the end of
+  the sequence, or the number of the last residue to include. \\
+Do you want to save your data (yes/no)? & \cmd{yes} to save a report. \\
+Enter name of output file: & The report file name. \\
+Enter a name or unique identifier for your protein/peptide: & A single word (no spaces) that
+  appears in the report's heading. \\
+\end{prompts}
+
+ProtMate prints the residues being analysed (70 per line), a warning for each unknown residue with
+its position, the composition table, and the results:
+
+\begin{session}
+alice% > \inp{7}
+
+Enter name of sequence file: \inp{a.seq}
+
+Number of residues in sequence: 140
+
+Enter number of the first residue (1 to start at first residue;  0 to exit): \inp{1}
+Enter number of the final residue (to end at the final residue, enter 0): \inp{0}
+
+Sequence to be analyzed:
+MSFIDPYQHIIVEHQYSHKFTVVVLRATKVTKGAFGDMLDTPDPYVELFISTTPDSRKRTRHFNNDINPV
+WNETFEFILDPNQENVLEITLMDANYVMDETLGTATFTVSSMKVGEKKEVPFIFNQVTEMVLEMSLEVCS
+
+
+Warnings: 0
+
+Your protein's Amino Acid composition is as follows:
+
+Res     Num     %
+======================
+Tyr:    4       2.86%
+Trp:    1       0.71%
+Cys:    1       0.71%
+   ... (one line for each amino acid) ...
+Arg:    4       2.86%
+Unk:    0       0%
+
+Formula of protein/peptide: C(725)H(1116)O(221)N(180)S(8)
+
+Molecular weight of protein/peptide (da): 16146.5
+
+Extinction coefficient of the native protein in water: 11585
+
+Absorbance (at 280nm & 1 mg/ml) assuming a path length of 1 cm: 0.717494
+
+Do you want to save your data (yes/no)? \inp{yes}
+Enter name of output file: \inp{a_report.txt}
+Enter a name or unique identifier for your protein/peptide: \inp{ProteinA}
+
+Your report was generated successfully.
+\end{session}
+
+If any residue is not one of the 20 standard one-letter codes, ProtMate prints
+\cmd{Warning: Unknown residue at pos \emph{n}} for each one and a reminder to check the sequence
+before using the results. Unknown residues are listed as \cmd{Unk} in the composition and are left
+out of the formula and molecular weight. As with option 6, the screen is cleared after the save
+questions, so note or save the results first.
+
+\menuoption{8. Calculate Concentration of a Nucleic Acid from A260}
+\typed{\cmd{8}, \cmd{dna}}
+
+\begin{prompts}
+What type of Nucleic Acid do you have (dna, rna or oligo)? & \cmd{dna} (double-stranded DNA),
+  \cmd{rna} or \cmd{oligo}, in lower case. \\
+Enter OD 260 for \ldots: & The absorbance at 260\,nm. \\
+Is the dilution factor different from 1 (yes/no)? [NO] & Press \key{Return} for no, or type \cmd{yes}. \\
+Enter Dilution factor: & Only asked if you answered \cmd{yes}; a whole number. \\
+\end{prompts}
+
+\begin{session}
+alice% > \inp{8}
+
+What type of Nucleic Acid do you have (dna, rna or oligo)? \inp{dna}
+
+Enter OD 260 for dsDNA: \inp{0.65}
+Is the dilution factor different from 1 (yes/no)? [NO] \inp{yes}
+Enter Dilution factor: \inp{10}
+
+Concentration = 325 ug dsDNA / ml
+\end{session}
+
+If the OD is below 0.1 or above 10, ProtMate warns that the result may not be accurate.
+
+\menuoption{9. Calculate Melting Point of a Primer/Oligonucleotide}
+\typed{\cmd{9}, \cmd{melt}}
+
+First choose how to describe the primer:
+
+\begin{session}
+Enter input technique
+[1] Manual [2] Automatic from .seq file [0] Return to main menu: [1]
+\end{session}
+
+Press \key{Return} (or type \cmd{1}) for manual entry, \cmd{2} to read the primer's sequence from a
+file, or \cmd{0} to go back.
+
+\subsubsection*{Manual entry}
+
+\begin{prompts}
+Enter length of primer/oligo (total number of nucleotides in primer/oligonucleotide): & The number
+  of nucleotides. \\
+Enter number of G+Cs in primer: & How many are G or C. If this equals the length, ProtMate asks
+  you to confirm that the primer is all G and C. \\
+Enter total salt concentration (in Molar) (Typical [salt] = 0.05 M): & The Na$^+$ concentration
+  in M. Zero or a negative value is replaced by 0.05\,M. \\
+Do you want to save your data (yes/no)? & \cmd{yes} to save the results, then a file name. \\
+\end{prompts}
+
+\begin{session}[fontsize=\footnotesize]
+alice% > \inp{9}
+Enter input technique
+[1] Manual [2] Automatic from .seq file [0] Return to main menu: [1] \inp{1}
+
+Enter length of primer/oligo (total number of nucleotides in primer/oligonucleotide): \inp{20}
+Enter number of G+Cs in primer: \inp{10}
+Enter total salt concentration (in Molar) (Typical [salt] = 0.05 M): \inp{0.05}
+
+
+**** RESULTS ****
+
+% G-C content: 50%
+
+Melting point of primer = 51.78 C
+Salt-adjusted melting point of primer = 46.65 C
+
+
+Do you want to save your data (yes/no)? \inp{no}
+
+Press the Return key to continue....
+\end{session}
+
+\subsubsection*{From a sequence file}
+
+\begin{prompts}
+Enter name of sequence file: & The file holding the primer's sequence (A, C, G and T only). The name
+  may contain spaces. \\
+Enter total salt concentration (in Molar) (Typical [salt] = 0.05 M): & As above. \\
+Do you want to save your data (yes/no)? & \cmd{yes} to save, then a file name. \\
+\end{prompts}
+
+ProtMate prints the length, the number of each base, the G--C content and both melting points. If
+the file contains any other character, it reports the first one and its position and stops. In
+this mode the screen is cleared straight after the save question, so note or save the results
+first.
+
+\menuoption{10. Calculate your Body Mass Index (BMI)}
+\typed{\cmd{10}, \cmd{bmi}}
+
+\begin{prompts}
+Enter height in feet and inches (ft [space] inches): & Both numbers on one line separated by a
+  space, e.g. \cmd{5 9}. \\
+Enter weight in pounds (lb): & Your weight. \\
+Do you wish to enter more data (yes/no)? & \cmd{yes} to calculate another BMI. \\
+\end{prompts}
+
+ProtMate prints your height in metres, weight in kilograms, the BMI with its category, the
+normal-weight range for your height, and the CDC reference ranges. Type \cmd{bmiinfo} at the
+prompt to see the reference ranges on their own.
+
+\menuoption{11. Factorial Calculator}
+\typed{\cmd{11}, \cmd{fact}}
+
+\begin{prompts}
+Enter an integer: & A whole number from 0 to 20. \\
+\end{prompts}
+
+ProtMate prints, for example, \cmd{20! = 2432902008176640000}. Negative numbers and numbers above
+20 are refused; a decimal number is rounded down.
+
+\menuoption{12. Rename Oscillation Files}
+\typed{\cmd{12}, \cmd{rname}}
+
+Renames a series of diffraction images into the form Mosflm reads (see also the GUI description in
+Chapter~\ref{ch:gui}). The current names must be a file string followed by \cmd{0} and a frame
+number padded to three digits, such as \cmd{1.0001}; the new names are the new file string,
+the three-digit frame number and \cmd{.osc}, such as \cmd{a\_001.osc}.
+
+\begin{prompts}
+Enter number of files: & How many images to rename (1 to 100{,}000), or \cmd{0} to leave. \\
+Enter initial frame number: & The frame number of the first image, or \cmd{0} to leave. \\
+Enter file string (e.g. for files 1.\#\#\#.*, enter "1."): & The start of the current names, e.g.
+  \cmd{1.} \\
+Enter desired file string (e.g to rename files a\_\#\#\#.osc, enter "a\_"): & The start of the new
+  names, e.g. \cmd{a\_} \\
+Working directory: & The folder holding the images, without a trailing slash: \cmd{.} for the
+  current folder, a path such as \cmd{/xtal/xtal1}, \cmd{?} for help, or \cmd{0} to leave. The
+  path may contain spaces. \\
+Do you wish to proceed (y/n)? & \cmd{y} to rename the files listed. \\
+\end{prompts}
+
+\begin{session}
+alice% > \inp{12}
+
+Rename Osciallation Files
+=========================
+
+This module will rename sequential oscillation files to
+a name format that can be used by Mosflm.
+
+Enter number of files: \inp{3}
+Enter initial frame number: \inp{1}
+Enter file string (e.g. for files 1.###.*, enter "1."): \inp{1.}
+Enter desired file string (e.g to rename files a_###.osc, enter "a_"): \inp{a_}
+Working directory: \inp{.}
+.
+
+Starting Frame No.: 1   Ending Frame No.: 3
+
+Frame   File
+1       1.0001
+2       1.0002
+3       1.0003
+Do you wish to proceed (y/n)? \inp{y}
+Reading 1.0001...
+Re-naming file 1.0001 to a_001.osc...
+   ...
+\end{session}
+
+A file whose new name already exists is skipped with a message; ProtMate never overwrites a file.
+The file strings may contain letters, digits and \cmd{. \_ - +}, and must not start with \cmd{-}.
+
+\menuoption{13. Generate Configuration/Input File to Run AutoDock Vina}
+\typed{\cmd{13}, \cmd{vina}}
+
+Writes \cmd{conf.txt}, a configuration file for AutoDock Vina with a cubic search box, in the
+current folder, and can then run Vina.
+
+\begin{prompts}
+Receptor file (in PDBQT format, with file extension): & e.g. \cmd{receptor.pdbqt}, or \cmd{0} to leave. \\
+Ligand file (in PDBQT format with file extension): & e.g. \cmd{ligand.pdbqt}, or \cmd{0} to leave. \\
+Enter the X co-ordinate for the grid center: & Centre of the search box, in \AA. \\
+Enter the Y co-ordinate for the grid center: & \\
+Enter the Z co-ordinate for the grid center: & \\
+Enter the desired size for one side of the grid (in angstroms): & The edge length of the box. \\
+Would you like to run AutoDock Vina with this configuration file (yes/no)? & \cmd{yes} to run Vina
+  now (it must be installed; Chapter~\ref{ch:external}). \\
+\end{prompts}
+
+If \cmd{conf.txt} already exists, ProtMate asks before replacing it. When Vina runs, its log is
+written to \cmd{vina\_log.txt} and the docked poses to \cmd{all.pdbqt}. File names may contain only
+letters, digits and \cmd{. \_ - / +}. The file written looks like this:
+
+\begin{listing}
+receptor = receptor.pdbqt
+ligand = ligand.pdbqt
+
+out = all.pdbqt
+
+center_x = 12.5
+center_y = -4.2
+center_z = 30.1
+
+size_x = 24
+size_y = 24
+size_z = 24
+
+exhaustiveness = 8
+\end{listing}
+
+\menuoption{14. Convert a PDBQT file to a PDB file}
+\typed{\cmd{14}, \cmd{pdb}, \cmd{pdbqt}}
+
+\begin{prompts}
+Enter name of your PDBQT file leaving out its file extension (.pdbqt) (Leave empty or enter '0' to
+exit module): & The file name \emph{without} \cmd{.pdbqt}. For \cmd{docked.pdbqt}, type
+\cmd{docked}. The name may contain spaces. \\
+\end{prompts}
+
+ProtMate writes \cmd{docked.pdb} next to the input, asking first if that file already exists.
+
+\menuoption{15. Generate XPLOR code to solvate a protein structure}
+\typed{\cmd{15}, \cmd{xplor}, \cmd{overlay}}
+
+Generates the X-PLOR/CNS scripts described in the GUI section (\emph{Solvate a Protein}).
+
+\begin{session}
+Which file(s) do you want to generate?
+[1] First stage [2] Second stage [3] Both Stages [0] Return to main menu: [1]
+\end{session}
+
+\begin{prompts}
+Enter name of protein's PDB coordinate file: & e.g. \cmd{protein.pdb} \\
+Enter name of protein's MTF structure file : & e.g. \cmd{protein.mtf} \\
+Enter name of solvent's PDB coordinate file: & The solvent shell (for stage 2: the file produced by stage 1). \\
+Enter name of solvent's MTF structure file : & Its structure file. \\
+Enter name of output file (.inp): & Where to save the script, e.g. \cmd{stage1.inp}. \\
+\end{prompts}
+
+With option \cmd{3}, ProtMate writes stage 1 and then asks for the new solvent files from stage 1
+and a second output file for stage 2. File names may contain only letters, digits and
+\cmd{. \_ - / +}. Run the saved scripts with X-PLOR or CNS.
+
+% ---------------------------------------------------------------------------
+\section{Other functions in the menu}
+
+\begin{description}
+  \item[\cmd{?} or \cmd{help}] Lists the command names (Table~\ref{tab:commands} has the complete
+        list).
+  \item[\cmd{ls}] Lists the files in the current folder (\cmd{ls -alp} on macOS and Linux, \cmd{dir}
+        on Windows).
+  \item[\cmd{pwd}] Shows your user name and the current folder.
+  \item[\cmd{sys} or \cmd{\$}] Runs one operating-system command, typed at the \cmd{>} prompt that
+        follows, for example \cmd{cp a.seq backup.seq}. The command runs with your own permissions
+        through the system shell (\cmd{cmd.exe} on Windows). For safety this is disabled when
+        ProtMate is run as root (macOS, Linux) or as an elevated administrator (Windows).
+  \item[\cmd{abt}, \cmd{about}] Shows ProtMate's version, the copyright and licence notice, the
+        disclaimer, the project's web address, and the operating system it is running on.
+  \item[\cmd{0}, \cmd{quit}, \cmd{exit}, \cmd{stop} or \cmd{bye}] Leaves ProtMate.
+\end{description}
+
+\section{Commands not shown in the menu}
+
+\begin{description}
+  \item[\cmd{pmol} or \cmd{pmole}] Converts a mass/volume or volume percentage to a molar
+        concentration. Choose \cmd{1} for \% (w/v), then enter the percentage and the formula
+        weight (g/mol); or \cmd{2} for \% (v/v), then also the density (g/ml). The result is given in
+        M and mM.
+  \item[\cmd{bmiinfo}] Shows the CDC's BMI reference ranges.
+  \item[\cmd{whoami}] Shows your user name.
+  \item[\cmd{who}] Lists the users logged in to the computer (\cmd{query user} on Windows, where
+        available).
+  \item[\cmd{ps}] Lists running processes (\cmd{tasklist} on Windows).
+  \item[\cmd{clear} or \cmd{clr}] Clears the screen.
+  \item[\cmd{open} or \cmd{rasmol}] Asks for a PDB file name and opens it in RasMol, if RasMol is
+        installed.
+\end{description}
+
+\begin{session}
+alice% > \inp{pmol}
+
+Please select the conversion you want to perform:
+ [1] convert a mass concentration (%w/v) to a molar concentration
+ [2] convert a percent volume (%v/v) to a molar concentration
+
+> \inp{1}
+
+Convert a mass concentration (%w/v) to molar concentration
+==========================================================
+
+Enter percentage solution (% (w/v)) for your compound: \inp{5}
+Enter formula weight of compound (g/mole): \inp{58.44}
+
+The molar concentration of your compound is: 0.86 M = 855.58 mM
+\end{session}
+
+\section{Command reference}
+
+\begin{longtable}{@{}p{0.34\linewidth}p{0.6\linewidth}@{}}
+\caption{Everything you can type at the \cmd{pmate} prompt.}\label{tab:commands}\\
+\toprule
+\textbf{Type} & \textbf{To} \\ \midrule
+\endfirsthead
+\toprule
+\textbf{Type} & \textbf{To} \\ \midrule
+\endhead
+\cmd{mnu}, \cmd{menu} & Show the main menu \\
+\cmd{1}, \cmd{wv-weight} & Mass needed for a \% (w/v) solution \\
+\cmd{2}, \cmd{wv-vol} & Volume needed for a \% (w/v) solution \\
+\cmd{3}, \cmd{prot} & Protein concentration, one A280 reading \\
+\cmd{4}, \cmd{mprot} & Protein concentration, several readings typed in \\
+\cmd{5}, \cmd{mprot\_auto} & Protein concentration, readings from a file \\
+\cmd{6} & Extinction coefficient from residue counts \\
+\cmd{7}, \cmd{ext} & Analyse a protein sequence file \\
+\cmd{8}, \cmd{dna} & Nucleic acid concentration from A260 \\
+\cmd{9}, \cmd{melt} & Primer melting temperature \\
+\cmd{10}, \cmd{bmi} & Body mass index \\
+\cmd{11}, \cmd{fact} & Factorial \\
+\cmd{12}, \cmd{rname} & Rename oscillation files \\
+\cmd{13}, \cmd{vina}, \cmd{VINA} & AutoDock Vina configuration \\
+\cmd{14}, \cmd{pdb}, \cmd{pdbqt}, \cmd{PDB}, \cmd{PDBQT} & PDBQT to PDB \\
+\cmd{15}, \cmd{xplor}, \cmd{overlay} & X-PLOR code to solvate a protein \\
+\cmd{pmol}, \cmd{pmole} & Percent to molar concentration \\
+\cmd{bmiinfo} & BMI reference ranges \\
+\cmd{open}, \cmd{rasmol} & Open a PDB file in RasMol \\
+\cmd{?}, \cmd{help} & List commands \\
+\cmd{ls} & List files in the current folder \\
+\cmd{pwd} & Show the current folder \\
+\cmd{whoami} & Show your user name \\
+\cmd{who} & Show logged-in users \\
+\cmd{ps} & Show running processes \\
+\cmd{sys}, \cmd{\$} & Run an operating-system command \\
+\cmd{abt}, \cmd{about}, \cmd{ABT} & About ProtMate \\
+\cmd{clear}, \cmd{clr} & Clear the screen \\
+\cmd{0}, \cmd{quit}, \cmd{exit}, \cmd{stop}, \cmd{bye} & Quit \\
+\bottomrule
+\end{longtable}
+
+% ===========================================================================
+\chapter{File formats}\label{ch:files}
+
+\section{Protein and DNA sequence files (.seq)}\label{sec:seq-files}
+
+A sequence file is a plain text file containing the sequence in one-letter codes. Line breaks,
+spaces and tabs are ignored, and upper and lower case are treated alike, so the sequence can be
+split over as many lines as you like:
+
+\begin{listing}
+MSFIDPYQHIIVEHQYSHKFTVVVLRATKVTKGAFGDMLDTPDPYVELFISTTPDSRKRTRHFNNDINPV
+WNETFEFILDPNQENVLEITLMDANYVMDETLGTATFTVSSMKVGEKKEVPFIFNQVTEMVLEMSLEVCS
+\end{listing}
+
+\begin{itemize}
+  \item For proteins, the 20 standard amino acids are recognised (A C D E F G H I K L M N P Q R S T
+        V W Y). Every other character, including numbers and punctuation, is counted as an unknown
+        residue at that position.
+  \item For primers (melting point), only A, C, G and T are allowed.
+  \item The file must contain only the sequence. In particular, remove the header line
+        (starting with \cmd{>}) from FASTA files, and any numbering, or these characters will be
+        treated as residues.
+  \item Sequences of up to 1{,}000{,}000 residues are accepted.
+\end{itemize}
+
+Create sequence files with any plain text editor (TextEdit in plain-text mode, Notepad, nano,
+\ldots), not a word processor.
+
+\section{A280 readings files}\label{sec:readings-file}
+
+Used by menu option 5 and by \gui{Import\ldots} on the \gui{Multiple A280 Readings} page. The file
+contains pairs of numbers: each sample's A280 followed by its volume in ml. Numbers are separated by
+spaces, tabs or line breaks; one sample per line is the clearest:
+
+\begin{listing}
+0.42 2.5
+0.38 2.0
+0.21 3.0
+\end{listing}
+
+Commas are not separators, so convert CSV files exported from a spreadsheet by saving them as
+tab-separated or space-separated text. Reading stops at the first entry that is not a number.
+
+\section{Report files}\label{sec:reports}
+
+Reports are plain text files with Unix (LF) line endings. They are identical whichever version of
+ProtMate, and whichever operating system, wrote them. All modern text editors, including Notepad on
+Windows~10 and later, display them correctly.
+
+\begin{description}
+  \item[Multiple readings] A tab-separated table, which opens directly in a spreadsheet program:
+\begin{listing}
+Sample #        A280    Dil.    [Protein] (mg/ml)       Yield (mg)
+1       0.42    10      4.57    11.425
+2       0.38    10      4.13    8.26
+3       0.21    10      2.28    6.84
+\end{listing}
+  \item[Sequence analysis] A report headed \cmd{PROTMATE REPORTER} with the protein's name, the
+        operator (your user name), the composition table, formula, molecular weight, extinction
+        coefficient and absorbance.
+  \item[Extinction coefficient and melting point] The values shown on the screen.
+\end{description}
+
+\section{Files for other programs}
+
+\begin{description}
+  \item[Vina configuration (\cmd{conf.txt})] Shown in the description of option 13.
+  \item[X-PLOR scripts (\cmd{.inp})] Read the protein and solvent files with \cmd{structure @} and
+        \cmd{coordinates @} statements, then select and write (stage 1, \cmd{overlay1.pdb}) or
+        delete and write (stage 2, \cmd{overlay2.pdb}) the solvent molecules.
+  \item[PDBQT to PDB] Each line of the PDBQT file is copied with columns 1--60 kept, columns 61--69
+        removed, and columns 70--79 (the partial charge and the start of the AutoDock atom type)
+        moved up to start in column 61, where the PDB format has the B-factor.
+\end{description}
+
+% ===========================================================================
+\chapter{Safety features}
+
+ProtMate is designed so that a typing mistake or an odd file name cannot damage your data:
+
+\begin{itemize}
+  \item \textbf{No file is overwritten without asking.} The terminal version asks
+        \cmd{Overwrite it (yes/no)?} and the graphical version's save dialog asks before replacing
+        a file. Renaming oscillation files never replaces an existing file.
+  \item \textbf{Links are not followed when saving.} The terminal version refuses to write to a
+        symbolic link (or, on Windows, another kind of reparse point), so a link cannot redirect a
+        report onto another file.
+  \item \textbf{File names are checked} wherever they are written into another program's input
+        (Vina, X-PLOR) or used to rename files, so they cannot change the meaning of those files.
+  \item \textbf{External programs are started directly}, not through a command shell, and only from
+        folders named with a full path in \cmd{PATH}. The one deliberate exception is the terminal
+        version's \cmd{sys} command, which exists to run your own commands and is disabled for root
+        and administrator sessions.
+  \item \textbf{Input limits.} Sequences are limited to 1{,}000{,}000 residues and reading lists to
+        100{,}000 entries, so a wrong file cannot exhaust the computer's memory.
+\end{itemize}
+
+% ===========================================================================
+\chapter{Troubleshooting}
+
+\begin{description}[style=nextline,leftmargin=1.5em]
+  \item[macOS says ProtMate ``cannot be opened'' or the developer cannot be verified.]
+        See Section~\ref{sec:gatekeeper}.
+  \item[macOS says ProtMate needs a newer version of macOS, or it quits immediately.]
+        The ready-made app requires macOS 27 or later on Apple silicon. Build from source
+        (Chapter~\ref{ch:source}) for other Macs.
+  \item[\cmd{zsh: command not found: pmate} or \cmd{'pmate' is not recognized}.]
+        The program is not in a folder on your search path. Run it with its full path, for example
+        \cmd{\textasciitilde/bin/pmate}, or follow the installation steps to add its folder to
+        \cmd{PATH}.
+  \item[\cmd{zsh: permission denied: pmate} (macOS, Linux).] Make the file executable with
+        \cmd{chmod +x pmate}.
+  \item[Windows: ``The code execution cannot proceed because Qt6Core.dll was not found''.]
+        \cmd{ProtMate.exe} was moved out of its folder or started from inside the zip file. Extract
+        the whole zip file and start \cmd{ProtMate.exe} from the extracted folder.
+  \item[Linux: ``could not load the Qt platform plugin xcb''.] Install the missing X11 library,
+        for example \cmd{sudo apt install libxcb-cursor0} on Debian and Ubuntu, or run under
+        Wayland.
+  \item[CMake: ``Could not find a package configuration file provided by Qt6''.] Install the Qt
+        development package (Chapter~\ref{ch:linux}), or tell CMake where Qt is with
+        \cmd{-DCMAKE\_PREFIX\_PATH}. If your Qt is older than 6.5, build only the terminal version.
+  \item[\cmd{Invalid filename ...}] The file was not found. Check the spelling and the current folder
+        (type \cmd{pwd} and \cmd{ls} at the \cmd{pmate} prompt). File names are case-sensitive on
+        Linux and usually on macOS.
+  \item[Unexpected results after a typing mistake in the terminal version.] Text typed where a
+        number is expected is read as 0. Start the tool again.
+  \item[The screen clears before I can read the results.] Options 6 and 7, and option 9 with a
+        sequence file, return to the prompt straight after the save question. Read the results, or
+        answer \cmd{yes} to save them, before answering.
+  \item[Many unknown residues in a sequence analysis.] The file probably contains a FASTA header,
+        residue numbers or other text. Leave only the sequence in the file.
+  \item[``AutoDock Vina was not found'' / ``Rasmol not available''.] See
+        Chapter~\ref{ch:external}.
+  \item[Vina fails with an error about the \cmd{--log} option.] ProtMate runs
+        \cmd{vina --config conf.txt --log vina\_log.txt}. Releases of Vina that do not accept
+        \cmd{--log} cannot be started this way; use the saved configuration file and run Vina yourself
+        with \cmd{vina --config conf.txt}.
+  \item[A rename shows ``Not found'' for every file.] Check the current file string and the initial
+        frame number. ProtMate expects the current names to be the file string, \cmd{0}, and a
+        three-digit frame number (\cmd{1.0001}).
+\end{description}
+
+\section*{Reporting problems}
+
+If you find a bug or a wrong result, please report it on the project's issue tracker, \issues.
+Include the ProtMate version (from \menupath{Help}{About ProtMate}, or \cmd{abt} in the terminal
+version), your operating system, the values you entered and the result you expected. Contributions
+are welcome as pull requests on GitHub.
+
+% ===========================================================================
+\appendix
+
+\chapter{Formulas and constants}\label{app:formulas}
+
+\section{Weight to volume ratio}
+\[
+  m\,[\text{g}] = \frac{\%(w/v)}{100}\times V\,[\text{ml}]
+  \qquad\qquad
+  V\,[\text{ml}] = \frac{m\,[\text{g}]}{\%(w/v)/100}
+\]
+
+\section{Protein concentration from A280}
+\[
+  D = \frac{V_\text{cuvette}}{V_\text{protein in cuvette}}
+  \qquad
+  c\,[\text{mg/ml}] = \frac{A_{280}\times D}{\varepsilon_{1\,\text{mg/ml}}}
+  \qquad
+  \text{amount}\,[\text{mg}] = c\times V_\text{sample}\,[\text{ml}]
+\]
+where $\varepsilon_{1\,\text{mg/ml}}$ is the absorbance of a 1\,mg/ml solution in a 1\,cm cell.
+The concentration is rounded to two decimal places before the amount is calculated.
+
+\section{Extinction coefficient}
+Following Pace \emph{et al.} (1995), \emph{Protein Science} 4, 2411--2423:
+\[
+  \varepsilon_{280}\,[\text{M}^{-1}\,\text{cm}^{-1}] = 1490\,n_\text{Tyr} + 5500\,n_\text{Trp} + 125\,n_\text{Cys}
+  \qquad
+  A_{280}^{1\,\text{mg/ml}} = \frac{\varepsilon_{280}}{M_r}
+\]
+In Pace's method, the 125 term applies to cystines (disulfide-bonded pairs). The sequence analysis
+counts every cysteine residue, so for a protein whose cysteines are reduced the value is slightly
+high; with option 6 you can enter the number of disulfides instead.
+
+\section{Chemical formula and molecular weight}
+Each residue contributes its atoms as part of a polypeptide chain (the amino acid minus one water),
+and one water is added for the chain's termini. The molecular weight uses average atomic masses:
+C 12.011, H 1.008, N 14.007, O 15.999 and S 32.066\,Da. Unknown residues are not included.
+
+\section{Nucleic acid concentration}
+\[
+  c\,[\mu\text{g/ml}] = A_{260}\times D\times F,\qquad
+  F = 50 \text{ (dsDNA)},\ 40 \text{ (RNA)},\ 20 \text{ (oligonucleotide)}.
+\]
+
+\section{Primer melting temperature}
+For a primer of $N$ nucleotides with $n_{GC}$ G or C residues:
+\[
+  T_m = \begin{cases}
+     2\,(N - n_{GC}) + 4\,n_{GC} & N < 14\\[2pt]
+     64.9 + 41\,\dfrac{n_{GC} - 16.4}{N} & N \ge 14
+  \end{cases}\quad[\text{\degC}]
+\]
+\[
+  T_m^\text{salt} = 81.5 + 16.6\log_{10}[\text{Na}^+] + 0.41\,(\%GC) - \frac{675}{N}\quad[\text{\degC}]
+\]
+
+\section{Percent to molar concentration}
+\[
+  M = \frac{\%(w/v)}{0.1\times FW}
+  \qquad
+  \%(w/v) = \rho\,[\text{g/ml}]\times\%(v/v)
+\]
+
+\section{Body mass index}
+\[
+  h\,[\text{m}] = \frac{30\,\text{ft} + 2.54\,\text{in}}{100}
+  \qquad
+  w\,[\text{kg}] = \frac{\text{lb}}{2.2}
+  \qquad
+  \text{BMI} = \frac{w}{h^2}
+\]
+(ProtMate uses 30\,cm per foot and 2.2\,lb per kilogram.) The normal-weight range shown is
+$18.5\,h^2$ to $24.9\,h^2$, converted to pounds. Categories: below 18.5 underweight; 18.5--24.9
+normal; 25.0--29.9 overweight; 30 and above obese.
+
+\chapter{Worked example with the sample data}
+
+Analysing the example sequence file \cmd{a.seq} (140 residues,
+shown in Section~\ref{sec:seq-files}) gives:
+
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+Formula & C$_{725}$H$_{1116}$O$_{221}$N$_{180}$S$_{8}$ \\
+Molecular weight & 16146.5\,Da \\
+Tyr, Trp, Cys & 4, 1, 1 \\
+Extinction coefficient & 11585\,M$^{-1}$\,cm$^{-1}$ \\
+Absorbance of 1\,mg/ml & 0.717 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+A solution of this protein with $A_{280} = 0.36$, measured after a 1-in-10 dilution
+(10\,\ul{} of protein in 100\,\ul), therefore contains
+$0.36\times 10 / 0.717 = 5.02$\,mg/ml.
+
+\chapter{Licence, disclaimer and acknowledgements}\label{app:licence}
+
+\section{Licence}
+
+ProtMate is Copyright \textcopyright{} \copyrightyears{} Sanjeeva Wijeyesakere.
+
+ProtMate is free software: you can redistribute it and/or modify it under the terms of the GNU
+General Public License as published by the Free Software Foundation, \gplgrant. The full text of
+the licence is in the \cmd{LICENSE} file of the source code, in \cmd{LICENSE.txt} in the macOS
+disk image and the Windows package, and at
+\url{https://www.gnu.org/licenses/gpl-3.0.html}.
+
+In brief, the GPL allows you to run ProtMate for any purpose, to study and modify its source code,
+and to distribute copies of the original or of modified versions. If you distribute ProtMate or a
+modified version, in source or compiled form, you must license it under the GPL as well, keep the
+copyright and licence notices, and make the corresponding source code available. The source code
+of every release is available from \repo. This summary is for convenience only; the licence text
+itself governs.
+
+\section{Disclaimer}
+
+ProtMate is a tool to assist with routine laboratory calculations. It is not a substitute for
+professional judgement, and its results have not been validated for any particular use. The author
+assumes no liability for the accuracy of the calculations, results or reports produced by ProtMate,
+or for the functionality of the program, including any loss of samples, materials, data or time
+arising from its use. You are responsible for verifying every result independently before relying
+on it. The body mass index calculator is included for convenience only and is not medical advice.
+
+The GNU General Public License states:
+
+\begin{quote}\small
+\textbf{15. Disclaimer of Warranty.} THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED
+BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER
+PARTIES PROVIDE THE PROGRAM ``AS IS'' WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU.
+SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR
+CORRECTION.
+
+\textbf{16. Limitation of Liability.} IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN
+WRITING WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS THE PROGRAM AS
+PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR
+CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT
+LIMITED TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD
+PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER OR
+OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+\end{quote}
+
+\section{Third-party software}
+
+The graphical version uses the Qt toolkit (\url{https://www.qt.io}), \textcopyright{} The Qt Company,
+under the GNU Lesser General Public License version~3. The Windows package also includes the
+\cmd{libc++} and \cmd{libunwind} runtime libraries from the LLVM project, under the Apache License
+2.0 with LLVM Exceptions. The licence texts are in the \cmd{licenses} folder of the Windows
+package. Qt's source code is available from \url{https://download.qt.io}. Both licences are
+compatible with the GPLv3.
+
+\section{Acknowledgements}
+
+AutoDock Vina: O.~Trott and A.~J.~Olson (2010), AutoDock Vina: improving the speed and accuracy of
+docking with a new scoring function, efficient optimization and multithreading,
+\emph{Journal of Computational Chemistry} 31, 455--461.
+
+\end{document}
