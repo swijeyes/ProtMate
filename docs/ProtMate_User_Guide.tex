@@ -272,8 +272,12 @@ macOS & A Mac with Apple silicon (M1 or later) running macOS 27 or later. About 
         (Chapter~\ref{ch:source}). \\
 Windows & 64-bit Windows 10 or Windows 11 on an x64 (Intel or AMD) processor. About 35\,MB of
           disk space. Nothing needs to be installed and administrator rights are not required. \\
-Linux & No ready-made package; build from source (Chapter~\ref{ch:linux}). You need a C++17
-        compiler, CMake 3.21 or later and, for the graphical version, Qt~6.5 or later. \\
+Linux & A 64-bit distribution on x86\_64 (Intel or AMD): RHEL, AlmaLinux or Rocky Linux~9, or
+        any distribution with glibc 2.35 or later, such as Ubuntu~22.04, Debian~12 or Fedora~36
+        and later; or on
+        ARM64 (aarch64) with glibc 2.38 or later, for example Ubuntu~24.04 or Debian~13. An X11
+        or Wayland desktop for the graphical version, which needs about 30\,MB of disk space. For
+        other systems, build from source (Chapter~\ref{ch:linux}). \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -294,9 +298,14 @@ file for your computer:
 \textbf{File} & \textbf{Contents} \\ \midrule
 \cmd{ProtMate-\pmversion.dmg} & macOS disk image containing the graphical version
                                 (\cmd{ProtMate.app}). \\
-\cmd{pmate} & macOS terminal version (a single file). \\
+\cmd{osx\_pmate} & macOS terminal version (a single file). \\
 \cmd{ProtMate-\pmversion-win64-portable.zip} & Windows portable package with both the graphical
                                 (\cmd{ProtMate.exe}) and terminal (\cmd{pmate.exe}) versions. \\
+\cmd{ProtMate-\pmversion-x86\_64.AppImage} & Linux graphical version for x86\_64 PCs (a single
+                                file containing everything it needs). \\
+\cmd{linux\_x86\_64\_pmate} & Linux terminal version for x86\_64 PCs. \\
+\cmd{ProtMate-\pmversion-aarch64.AppImage} & Linux graphical version for ARM64 computers. \\
+\cmd{linux\_aarch64\_pmate} & Linux terminal version for ARM64 computers. \\
 \gui{Source code} (zip or tar.gz) & Everything needed to build ProtMate yourself on any
                                 platform: \cmd{core/}, \cmd{cli/}, \cmd{gui/}, \cmd{resources/},
                                 \cmd{tests/}, \cmd{docs/} and \cmd{CMakeLists.txt}. GitHub adds
@@ -349,12 +358,12 @@ xattr -dr com.apple.quarantine /Applications/ProtMate.app
 
 \section{Installing the terminal version}
 
-The terminal version is the single file \cmd{pmate}. Put it in a folder on your command search
-path so you can run it from anywhere. Open Terminal and run:
+The terminal version is the single file \cmd{osx\_pmate}. Put it in a folder on your command
+search path under the name \cmd{pmate}, so you can run it from anywhere. Open Terminal and run:
 
 \begin{terminal}
 mkdir -p ~/bin
-mv ~/Downloads/pmate ~/bin/
+mv ~/Downloads/osx_pmate ~/bin/pmate
 chmod +x ~/bin/pmate
 xattr -d com.apple.quarantine ~/bin/pmate   # clears the download flag
 \end{terminal}
@@ -367,7 +376,7 @@ echo 'export PATH="$HOME/bin:$PATH"' >> ~/.zshrc
 \end{terminal}
 
 Now type \cmd{pmate} in any Terminal window to start the terminal version. To install it for all
-users instead, copy it to \cmd{/usr/local/bin} with \cmd{sudo cp pmate /usr/local/bin/}.
+users instead, copy it to \cmd{/usr/local/bin} with \cmd{sudo cp \textasciitilde/bin/pmate /usr/local/bin/}.
 
 \section{Uninstalling}
 
@@ -449,10 +458,88 @@ ProtMate}, which you can delete with the Registry Editor if you wish.
 % ===========================================================================
 \chapter{Installing on Linux}\label{ch:linux}
 
-There is no ready-made Linux package, so you build ProtMate from its source code. This takes a few
-minutes and produces both the graphical (\cmd{ProtMate}) and the terminal (\cmd{pmate}) versions.
+Ready-made Linux versions are available for 64-bit PCs (x86\_64) and ARM64 computers (aarch64);
+Table~\ref{tab:requirements} lists the distributions they run on. To find out which kind of
+computer you have, run \cmd{uname -m} in a terminal. On other systems, or to make your own build,
+build ProtMate from its source code (Section~\ref{sec:linux-build}).
 
-\section{Install the build tools}
+\section{Installing the graphical version (AppImage)}
+
+The graphical version is an \emph{AppImage}: a single file that contains ProtMate and the
+libraries it needs, and runs without installation.
+
+\begin{enumerate}
+  \item Download \cmd{ProtMate-\pmversion-x86\_64.AppImage} (or the \cmd{aarch64} file on an ARM64
+        computer).
+  \item Move it somewhere permanent and make it executable, for example:
+\begin{terminal}
+mkdir -p ~/Applications
+mv ~/Downloads/ProtMate-1.2.0-x86_64.AppImage ~/Applications/
+chmod +x ~/Applications/ProtMate-1.2.0-x86_64.AppImage
+\end{terminal}
+        In most file managers you can instead right-click the file, open its \gui{Properties} and
+        tick \gui{Allow executing file as program}.
+  \item Double-click it, or run it from a terminal:
+\begin{terminal}
+~/Applications/ProtMate-1.2.0-x86_64.AppImage
+\end{terminal}
+\end{enumerate}
+
+AppImages need the FUSE~2 library. Most desktop distributions include it; if the AppImage reports
+that it cannot mount itself (``dlopen(): error loading libfuse.so.2''), install it with
+\cmd{sudo apt install libfuse2t64} (Ubuntu~24.04 and later), \cmd{sudo apt install libfuse2}
+(older Debian and Ubuntu), or \cmd{sudo dnf install fuse-libs} (Fedora, RHEL and similar). Or run
+the AppImage without FUSE by adding \cmd{-{}-appimage-extract-and-run} to the command line.
+
+To add ProtMate to your desktop's application menu, copy its icon out of the AppImage and create
+a menu entry that points to the AppImage (change \cmd{APP} if you put it elsewhere):
+
+\begin{terminal}
+APP=~/Applications/ProtMate-1.2.0-x86_64.AppImage
+ICON=usr/share/icons/hicolor/256x256/apps/protmate.png
+cd /tmp && "$APP" --appimage-extract "$ICON" > /dev/null
+mkdir -p ~/.local/share/icons ~/.local/share/applications
+cp "squashfs-root/$ICON" ~/.local/share/icons/protmate.png && rm -rf squashfs-root
+cat > ~/.local/share/applications/protmate.desktop <<EOF
+[Desktop Entry]
+Type=Application
+Name=ProtMate
+Comment=Biochemical and biophysical laboratory calculations
+Exec=$APP
+Icon=$HOME/.local/share/icons/protmate.png
+Categories=Science;
+EOF
+\end{terminal}
+
+To remove ProtMate, delete the AppImage and, if you made them, these two files:
+\begin{itemize}
+  \item \cmd{\textasciitilde/.local/share/applications/protmate.desktop}
+  \item \cmd{\textasciitilde/.local/share/icons/protmate.png}
+\end{itemize}
+
+\section{Installing the terminal version}
+
+The terminal version is the single file \cmd{linux\_x86\_64\_pmate} (or
+\cmd{linux\_aarch64\_pmate}). It needs only the system C library. Install it under the name
+\cmd{pmate} in a folder on your search path:
+
+\begin{terminal}
+mkdir -p ~/.local/bin
+mv ~/Downloads/linux_x86_64_pmate ~/.local/bin/pmate
+chmod +x ~/.local/bin/pmate
+\end{terminal}
+
+Most distributions already search \cmd{\textasciitilde/.local/bin}; if \cmd{pmate} is not
+found, log out and back in, or add \cmd{export PATH="\$HOME/.local/bin:\$PATH"} to
+\cmd{\textasciitilde/.bashrc}. To install it for all users, use
+\cmd{sudo install -m 755 linux\_x86\_64\_pmate /usr/local/bin/pmate}.
+
+\section{Building from source}\label{sec:linux-build}
+
+Building takes a few minutes and produces both the graphical (\cmd{ProtMate}) and the terminal
+(\cmd{pmate}) versions.
+
+\subsection{Install the build tools}
 
 The graphical version needs Qt~6.5 or later. Recent distributions provide it, for example Debian~13,
 Ubuntu~24.10 and later, Fedora~39 and later, and Arch Linux. Debian~12 and Ubuntu~22.04/24.04 ship
@@ -478,7 +565,7 @@ sudo pacman -S --needed base-devel cmake qt6-base
 To check the Qt version, run \cmd{qmake6 -{}-version} or look for the package version in your
 package manager.
 
-\section{Build}
+\subsection{Build}
 
 Download the source code from the latest release (\releases) and unpack it, or clone the
 repository (this needs \cmd{git}, which you can install with your package manager):
@@ -499,41 +586,22 @@ ctest --test-dir build        # optional: runs ProtMate's self-tests
 The last command should finish with \cmd{100\% tests passed}. The programs are now in the
 \cmd{build} folder; try them with \cmd{./build/ProtMate} and \cmd{./build/pmate}.
 
-\section{Install}
+\subsection{Install}
 
-To install both programs into \cmd{/usr/local/bin}:
+To install both programs into \cmd{/usr/local/bin}, together with an application menu entry and
+icon:
 
 \begin{terminal}
 sudo cmake --install build
 \end{terminal}
 
 Use \cmd{cmake -{}-install build -{}-prefix \textasciitilde/.local} instead to install just for
-yourself without \cmd{sudo} (the programs go to \cmd{\textasciitilde/.local/bin}, which most
-distributions already have on the search path).
+yourself without \cmd{sudo}. The programs go to \cmd{\textasciitilde/.local/bin}, which most
+distributions already have on the search path, and the menu entry and icon go to
+\cmd{\textasciitilde/.local/share}. ProtMate then appears in your desktop's application menu,
+possibly after you log out and back in.
 
-\section{Adding ProtMate to the applications menu}
-
-To start the graphical version from your desktop's application launcher, copy the icon and create
-a desktop entry:
-
-\begin{terminal}
-mkdir -p ~/.local/share/icons ~/.local/share/applications
-cp resources/pmate_icon.png ~/.local/share/icons/protmate.png
-cat > ~/.local/share/applications/protmate.desktop <<'EOF'
-[Desktop Entry]
-Type=Application
-Name=ProtMate
-Comment=Laboratory formula calculator
-Exec=ProtMate
-Icon=protmate
-Categories=Science;Education;
-EOF
-\end{terminal}
-
-If you installed with \cmd{-{}-prefix \textasciitilde/.local}, change the \cmd{Exec} line to the
-full path, for example \cmd{Exec=/home/\emph{you}/.local/bin/ProtMate}.
-
-\section{Building only the terminal version}\label{sec:cli-only}
+\subsection{Building only the terminal version}\label{sec:cli-only}
 
 The terminal version needs no Qt at all. This works on any Linux system with a C++17 compiler and
 CMake, including servers without a desktop:
@@ -544,20 +612,17 @@ cmake --build build -j
 sudo cmake --install build
 \end{terminal}
 
-\section{Uninstalling}
+\subsection{Uninstalling a source build}
 
-CMake records what it installed in \cmd{build/install\_manifest.txt}. To remove it:
+CMake records what it installed (the programs, the menu entry and the icon) in
+\cmd{build/install\_manifest.txt}. To remove them:
 
 \begin{terminal}
 xargs sudo rm -v < build/install_manifest.txt
 \end{terminal}
 
-Also delete these files if you created or used them:
-\begin{itemize}
-  \item \cmd{\textasciitilde/.local/share/applications/protmate.desktop}
-  \item \cmd{\textasciitilde/.local/share/icons/protmate.png}
-  \item \cmd{\textasciitilde/.config/ProtMate/ProtMate.conf} (ProtMate's settings)
-\end{itemize}
+ProtMate's only other file is its settings file,
+\cmd{\textasciitilde/.config/ProtMate/ProtMate.conf}, which you can delete.
 
 % ===========================================================================
 \chapter{Building from source on any platform}\label{ch:source}
@@ -617,6 +682,8 @@ Adjust the Qt path to the version and compiler you installed.
 \cmd{-DPMATE\_BUILD\_GUI=OFF} & Build only the terminal version; Qt is not needed. \\
 \cmd{-DPMATE\_BUILD\_TESTS=OFF} & Skip the self-tests. \\
 \cmd{-DPMATE\_SANITIZE=ON} & Developer builds with AddressSanitizer and UndefinedBehaviorSanitizer. \\
+\cmd{-DPMATE\_STATIC\_RUNTIME=ON} & Link the C++ runtime into \cmd{pmate} so that, on Linux, it
+  needs only the system C library (used for the ready-made Linux versions). \\
 \cmd{-DCMAKE\_PREFIX\_PATH=\emph{dir}} & Where to find Qt, if CMake cannot find it by itself. \\
 \cmd{-DCMAKE\_BUILD\_TYPE=Debug} & Debugging build (the default is \cmd{Release}). \\
 \bottomrule
@@ -1733,6 +1800,12 @@ ProtMate is designed so that a typing mistake or an odd file name cannot damage 
   \item[Windows: ``The code execution cannot proceed because Qt6Core.dll was not found''.]
         \cmd{ProtMate.exe} was moved out of its folder or started from inside the zip file. Extract
         the whole zip file and start \cmd{ProtMate.exe} from the extracted folder.
+  \item[Linux: the AppImage does not start, or reports an error about FUSE or \cmd{libfuse.so.2}.]
+        Make sure the file is executable (\cmd{chmod +x}) and install the FUSE~2 library, or run it
+        with \cmd{-{}-appimage-extract-and-run} (Chapter~\ref{ch:linux}).
+  \item[Linux: ``version `GLIBC\_2.34' not found'' (or another version).] Your distribution is
+        older than the ready-made versions support. Build ProtMate from source
+        (Section~\ref{sec:linux-build}).
   \item[Linux: ``could not load the Qt platform plugin xcb''.] Install the missing X11 library,
         for example \cmd{sudo apt install libxcb-cursor0} on Debian and Ubuntu, or run under
         Wayland.
